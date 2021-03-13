@@ -1,0 +1,15 @@
+{
+    "name": "Batch It",
+    "description": "Trying to learn how to make an app.",
+    "type": "project",
+    "license": "AGPL",
+    "authors": [
+        {
+            "name": "Ryan Boder"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^5.4"
+    }
+}

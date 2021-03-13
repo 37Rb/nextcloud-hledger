@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>batchit</id>
+    <name>Batch It</name>
+    <summary>Trying to learn how to make an app.</summary>
+    <description><![CDATA[This is my first app.]]></description>
+    <version>0.0.1</version>
+    <licence>agpl</licence>
+    <author mail="ryanboder@tuta.io" >Ryan Boder</author>
+    <namespace>BatchIt</namespace>
+    <category>integration</category>
+    <bugs>https://github.com/nextcloud</bugs>
+    <dependencies>
+        <nextcloud min-version="15" max-version="15"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>Batch It</name>
+            <route>batchit.page.index</route>
+        </navigation>
+    </navigations>
+</info>
