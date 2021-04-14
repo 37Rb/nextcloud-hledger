@@ -1,23 +1,26 @@
 <?xml version="1.0"?>
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>batchit</id>
-    <name>Batch It</name>
-    <summary>Trying to learn how to make an app.</summary>
-    <description><![CDATA[This is my first app.]]></description>
+    <id>hledger</id>
+    <name>HLedger</name>
+    <summary>Plain Text Accounting on Nextcloud</summary>
+    <description><![CDATA[HLedger is cross-platform accounting software for both power users and folks new to accounting. It's good for tracking money, time, investments, cryptocurrencies, inventory and more.]]></description>
     <version>0.0.1</version>
     <licence>agpl</licence>
     <author mail="ryanboder@tuta.io" >Ryan Boder</author>
-    <namespace>BatchIt</namespace>
-    <category>integration</category>
-    <bugs>https://github.com/nextcloud</bugs>
+    <namespace>HLedger</namespace>
+    <category>organization</category>
+    <bugs>https://github.com/nextcloud/hledger/issues</bugs>
     <dependencies>
-        <nextcloud min-version="15" max-version="15"/>
+        <nextcloud min-version="20"/>
     </dependencies>
     <navigations>
         <navigation>
-            <name>Batch It</name>
-            <route>batchit.page.index</route>
+            <name>HLedger</name>
+            <route>hledger.page.index</route>
         </navigation>
     </navigations>
+    <settings>
+      <personal>OCA\HLedger\Settings\Personal</personal>
+    </settings>
 </info>

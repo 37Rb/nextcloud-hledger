@@ -1,4 +1,4 @@
-# Batch It
+# HLedger Plain Text Accounting
 Place this app in **nextcloud/apps/**
 
 ## Building the app

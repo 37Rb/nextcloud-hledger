@@ -1,6 +1,6 @@
 {
-    "name": "Batch It",
-    "description": "Trying to learn how to make an app.",
+    "name": "HLedger",
+    "description": "Plain Text Accounting on Nextcloud",
     "type": "project",
     "license": "AGPL",
     "authors": [

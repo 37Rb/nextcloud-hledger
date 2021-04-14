@@ -1,10 +1,5 @@
 <ul>
-	<li><a href="#">First level entry</a></li>
-	<li>
-		<a href="#">First level container</a>
-		<ul>
-			<li><a href="#">Second level entry</a></li>
-			<li><a href="#">Second level entry</a></li>
-		</ul>
-	</li>
+	<li><a href="?tab=budget">Budget</a></li>
+	<li><a href="?tab=income">Income Statement</a></li>
+	<li><a href="?tab=balance">Balance Sheet</a></li>
 </ul>

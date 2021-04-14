@@ -1,1 +1,7 @@
-<h1>Hello world</h1>
+<?php
+
+global $hledgerlog;
+
+if (isset($hledgerlog)) {
+  echo($hledgerlog);
+}

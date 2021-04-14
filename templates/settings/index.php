@@ -5,6 +5,7 @@
 		></button>
 	</div>
 	<div id="app-settings-content">
-		<!-- Your settings in here -->
+		<label for="hledger_folder">HLedger Folder</label>
+		<input type="text" id="hledger_folder" name="hledger_folder" value="<?php echo($_['hledger_folder']) ?>" />
 	</div>
 </div>

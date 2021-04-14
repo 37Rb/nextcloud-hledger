@@ -1,6 +1,6 @@
 <?php
-script('batchit', 'script');
-style('batchit', 'style');
+script('hledger', 'script');
+style('hledger', 'style');
 ?>
 
 <div id="app">
@@ -15,4 +15,3 @@ style('batchit', 'style');
 		</div>
 	</div>
 </div>
-
