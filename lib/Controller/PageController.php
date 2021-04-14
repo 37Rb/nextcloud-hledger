@@ -112,10 +112,10 @@ class PageController extends Controller {
 	private function hledger($args) {
 		$appManager = \OC::$server->get(\OCP\App\IAppManager::class);
 		$hledger = $appManager->getAppPath("hledger") . "/bin/hledger";
-		$user_path = '/app/data/' . $this->userId . '/files'; // XXX need to query data path!!!
-		$hledger_path = $user_path . $this->rootFolder->getFullPath($this->settings['hledger_folder']) . '/';
-		$journal = $hledger_path . $this->settings['journal_file'];
-		$budget = $hledger_path . $this->settings['budget_file'];
+		$user_files = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
+		$hledger_files = $user_files . $this->rootFolder->getFullPath($this->settings['hledger_folder']) . '/';
+		$journal = $hledger_files . $this->settings['journal_file'];
+		$budget = $hledger_files . $this->settings['budget_file'];
 		return shell_exec("$hledger -f $journal -f $budget $args 2>&1");
 	}
 
