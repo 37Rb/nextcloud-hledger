@@ -6,29 +6,52 @@ use OCP\IConfig;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
+use OCP\Files\IRootFolder;
 
 class PageController extends Controller {
 	private $userId;
 	private $config;
+	private $rootFolder;
+	private $settings;
 
-	public function __construct($AppName, IRequest $request, $userId, IConfig $config){
+	public function __construct($AppName, IRequest $request, $UserId, IConfig $config, IRootFolder $rootFolder){
 		parent::__construct($AppName, $request);
-		$this->userId = $userId;
+		$this->userId = $UserId;
 		$this->config = $config;
+		$this->rootFolder = $rootFolder;
 	}
 
 	/**
-	 * CAUTION: the @Stuff turns off security checks; for this page no admin is
-	 *          required and no CSRF check. If you don't know what CSRF is, read
-	 *          it up in the docs or you might create a security hole. This is
-	 *          basically the only required method to add this exemption, don't
-	 *          add it to any other method if you don't exactly know what it does
-	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
 	public function index() {
 
+		$this->check_for_new_settings();
+		$this->load_settings();
+		$this->show_report();
+
+		return new TemplateResponse('hledger', 'index', $this->settings);
+	}
+
+	private function check_for_new_settings() {
+		if (isset($_GET['hledger_folder']))
+			$this->config->setAppValue('hledger', 'hledger_folder', $_GET['hledger_folder']);
+		if (isset($_GET['journal_file']))
+			$this->config->setAppValue('hledger', 'journal_file', $_GET['journal_file']);
+		if (isset($_GET['budget_file']))
+			$this->config->setAppValue('hledger', 'budget_file', $_GET['budget_file']);
+	}
+
+	private function load_settings() {
+		 $this->settings = [
+			'hledger_folder' => $this->config->getAppValue('hledger', 'hledger_folder', 'HLedger'),
+			'journal_file' => $this->config->getAppValue('hledger', 'journal_file', 'journal.txt'),
+			'budget_file' => $this->config->getAppValue('hledger', 'budget_file', 'budget.txt')
+		];
+	}
+
+	private function show_report() {
 		$tab = $_GET['tab'];
 		if ($tab == 'balance') {
 			$this->show_csv_report($this->hledger('bs -MV -b thisyear -e thismonth -O csv'));
@@ -38,15 +61,9 @@ class PageController extends Controller {
 			$header = '"Budget last month and this month","","","",""' . "\n";
 			$this->show_csv_report($header . $this->hledger('bal -MV -p lastmonth -e nextmonth --budget "not:desc:opening balances" -O csv'));
 		}
-
-		$parameters = [
-			'hledger_folder' => $this->config->getAppValue('hledger', 'hledger_folder', 'HLedger')
-		];
-
-		return new TemplateResponse('hledger', 'index', $parameters);
 	}
 
-	function show_csv_report($report) {
+	private function show_csv_report($report) {
 		$this->log('<table class="hledger-data">');
 
 		foreach(preg_split("/((\r?\n)|(\r\n?))/", $report) as $line) {
@@ -95,8 +112,10 @@ class PageController extends Controller {
 	private function hledger($args) {
 		$appManager = \OC::$server->get(\OCP\App\IAppManager::class);
 		$hledger = $appManager->getAppPath("hledger") . "/bin/hledger";
-		$journal = "/app/data/ryan/files/Finance/HLedger/journals/2021.journal";
-		$budget = "/app/data/ryan/files/Finance/HLedger/budgets/budget.journal";
+		$user_path = '/app/data/' . $this->userId . '/files'; // XXX need to query data path!!!
+		$hledger_path = $user_path . $this->rootFolder->getFullPath($this->settings['hledger_folder']) . '/';
+		$journal = $hledger_path . $this->settings['journal_file'];
+		$budget = $hledger_path . $this->settings['budget_file'];
 		return shell_exec("$hledger -f $journal -f $budget $args 2>&1");
 	}
 

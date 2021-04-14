@@ -20,7 +20,4 @@
             <route>hledger.page.index</route>
         </navigation>
     </navigations>
-    <settings>
-      <personal>OCA\HLedger\Settings\Personal</personal>
-    </settings>
 </info>
