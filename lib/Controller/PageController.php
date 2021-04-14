@@ -54,12 +54,12 @@ class PageController extends Controller {
 	private function show_report() {
 		$tab = $_GET['tab'];
 		if ($tab == 'balance') {
-			$this->show_csv_report($this->hledger('bs -MV -b thisyear -e thismonth -O csv'));
+			$this->show_csv_report($this->run_hledger('bs -MV -b thisyear -e thismonth -O csv'));
 		} else if ($tab == 'income') {
-			$this->show_csv_report($this->hledger('is -MV -b thisyear -e thismonth -O csv'));
+			$this->show_csv_report($this->run_hledger('is -MV -b thisyear -e thismonth -O csv'));
 		} else {
 			$header = '"Budget last month and this month","","","",""' . "\n";
-			$this->show_csv_report($header . $this->hledger('bal -MV -p lastmonth -e nextmonth --budget "not:desc:opening balances" -O csv'));
+			$this->show_csv_report($header . $this->run_hledger('bal -MV -p lastmonth -e nextmonth --budget "not:desc:opening balances" -O csv'));
 		}
 	}
 
@@ -109,13 +109,13 @@ class PageController extends Controller {
 		$hledgerlog .= "\n" . $s;
 	}
 
-	private function hledger($args) {
+	private function run_hledger($args) {
 		$appManager = \OC::$server->get(\OCP\App\IAppManager::class);
-		$hledger = $appManager->getAppPath("hledger") . "/bin/hledger";
+		$hledger = realpath($appManager->getAppPath("hledger") . "/bin/hledger");
 		$user_files = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
 		$hledger_files = $user_files . $this->rootFolder->getFullPath($this->settings['hledger_folder']) . '/';
-		$journal = $hledger_files . $this->settings['journal_file'];
-		$budget = $hledger_files . $this->settings['budget_file'];
+		$journal = realpath($hledger_files . $this->settings['journal_file']);
+		$budget = realpath($hledger_files . $this->settings['budget_file']);
 		return shell_exec("$hledger -f $journal -f $budget $args 2>&1");
 	}
 
