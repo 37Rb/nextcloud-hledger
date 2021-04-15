@@ -1,5 +1,5 @@
 {
-    "name": "HLedger",
+    "name": "ryanboder/nextcloud-hledger",
     "description": "Plain Text Accounting on Nextcloud",
     "type": "project",
     "license": "AGPL",
@@ -11,5 +11,13 @@
     "require": {},
     "require-dev": {
         "phpunit/phpunit": "^5.4"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php scripts/install-hledger.php"
+        ],
+        "post-update-cmd": [
+            "php scripts/install-hledger.php"
+        ]
     }
 }
