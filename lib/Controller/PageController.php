@@ -8,17 +8,27 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
 use OCP\Files\IRootFolder;
 
+use OCA\Viewer\Event\LoadViewer;
+use OCP\EventDispatcher\IEventDispatcher;
+
 class PageController extends Controller {
 	private $userId;
 	private $config;
 	private $rootFolder;
 	private $settings;
 
-	public function __construct($AppName, IRequest $request, $UserId, IConfig $config, IRootFolder $rootFolder){
+	/** @var IEventDispatcher */
+	private $eventDispatcher;
+
+	public function __construct($AppName, IRequest $request, $UserId,
+															IConfig $config,
+															IRootFolder $rootFolder,
+															IEventDispatcher $eventDispatcher){
 		parent::__construct($AppName, $request);
 		$this->userId = $UserId;
 		$this->config = $config;
 		$this->rootFolder = $rootFolder;
+		$this->eventDispatcher = $eventDispatcher;
 	}
 
 	/**
@@ -30,6 +40,8 @@ class PageController extends Controller {
 		$this->check_for_new_settings();
 		$this->load_settings();
 		$this->show_report();
+
+		$this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
 		return new TemplateResponse('hledger', 'index', $this->settings);
 	}
@@ -56,7 +68,7 @@ class PageController extends Controller {
 		if ($tab == 'balance') {
 			$this->show_csv_report($this->run_hledger('bs -MV -b thisyear -e thismonth -O csv'));
 		} else if ($tab == 'income') {
-			$this->show_csv_report($this->run_hledger('is -MV -b thisyear -e thismonth -O csv'));
+			$this->show_csv_report($this->run_hledger('is -MV -b thisyear -e nextmonth -O csv'));
 		} else {
 			$header = '"Budget last month and this month","","","",""' . "\n";
 			$this->show_csv_report($header . $this->run_hledger('bal -MV -p lastmonth -e nextmonth --budget "not:desc:opening balances" -O csv'));
