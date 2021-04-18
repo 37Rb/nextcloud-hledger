@@ -1,0 +1,57 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "396fed15df0beb4f68e718c02b9a42ae",
+    "packages": [
+        {
+            "name": "hledger/php-hledger",
+            "version": "0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/37Rb/php-hledger.git",
+                "reference": "bad16344b401de330cf26149157a50c07503d3a3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/37Rb/php-hledger/zipball/bad16344b401de330cf26149157a50c07503d3a3",
+                "reference": "bad16344b401de330cf26149157a50c07503d3a3",
+                "shasum": ""
+            },
+            "type": "library",
+            "scripts": {
+                "post-install-cmd": [
+                    "php install.php"
+                ],
+                "post-update-cmd": [
+                    "php install.php"
+                ]
+            },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Ryan Boder"
+                }
+            ],
+            "description": "Use HLedger from PHP",
+            "support": {
+                "source": "https://github.com/37Rb/php-hledger/tree/0.0.1",
+                "issues": "https://github.com/37Rb/php-hledger/issues"
+            },
+            "time": "2021-04-18T01:48:39+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
+}
