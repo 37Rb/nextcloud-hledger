@@ -9,21 +9,20 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\Notification\IManager;
 
-class Application extends App implements IBootstrap {
+class Application extends App implements IBootstrap
+{
+    public function __construct()
+    {
+        parent::__construct('hledger');
+    }
 
-  public function __construct() {
-    parent::__construct('hledger');
-  }
+    public function register(IRegistrationContext $context): void
+    {
+    }
 
-  public function register(IRegistrationContext $context): void {
-
-  }
-
-  public function boot(IBootContext $context): void {
-
-    Util::addStyle('hledger', 'style');
-    Util::addScript('hledger', 'script');
-
-  }
-
+    public function boot(IBootContext $context): void
+    {
+        Util::addStyle('hledger', 'style');
+        Util::addScript('hledger', 'script');
+    }
 }
