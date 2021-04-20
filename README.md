@@ -1,52 +1,15 @@
-# HLedger Plain Text Accounting
-Place this app in **nextcloud/apps/**
+# HLedger Plain Text Accounting on Nextcloud
 
-## Building the app
+[HLedger](https://hledger.org/) is cross-platform accounting software for both power users and folks new to accounting. It's good for tracking money, time, investments, cryptocurrencies, inventory and more.
 
-The app can be built by using the provided Makefile by running:
+[Plain Text Accounting](https://plaintextaccounting.org/) means doing accounting with plain text data formats and scriptable software.
 
-    make
+## Why Plain Text Accounting on Nextcloud?
 
-This requires the following things to be present:
-* make
-* which
-* tar: for building the archive
-* curl: used if phpunit and composer are not installed to fetch them from the web
-* npm: for building and testing everything JS, only required if a package.json is placed inside the **js/** folder
+Rather than storing financial data in a rigid or proprietary database, you can just record all your transactions as text and let the reporting tools do the hard work.
 
-The make command will install or update Composer dependencies if a composer.json is present and also **npm run build** if a package.json is present in the **js/** folder. The npm **build** script should use local paths for build systems and package managers, so people that simply want to build the app won't need to install npm libraries globally, e.g.:
+As a file storage system with desktop sync and mobile access, Nextcloud is a natural fit for plain text accounting. It provides a safe, private, easily accessible place to store your financial data. It provides security, online editing, multi-user, collaboration, desktop sync and mobile device access without compromising privacy or forcing you to trust a company as you must do with tools like Quicken, Mint, YNAB, etc...
 
-**package.json**:
-```json
-"scripts": {
-    "test": "node node_modules/gulp-cli/bin/gulp.js karma",
-    "prebuild": "npm install && node_modules/bower/bin/bower install && node_modules/bower/bin/bower update",
-    "build": "node node_modules/gulp-cli/bin/gulp.js"
-}
-```
+## Interested?
 
-
-## Publish to App Store
-
-First get an account for the [App Store](http://apps.nextcloud.com/) then run:
-
-    make && make appstore
-
-The archive is located in build/artifacts/appstore and can then be uploaded to the App Store.
-
-## Running tests
-You can use the provided Makefile to run all tests by using:
-
-    make test
-
-This will run the PHP unit and integration tests and if a package.json is present in the **js/** folder will execute **npm run test**
-
-Of course you can also install [PHPUnit](http://phpunit.de/getting-started.html) and use the configurations directly:
-
-    phpunit -c phpunit.xml
-
-or:
-
-    phpunit -c phpunit.integration.xml
-
-for integration tests
+This project is just getting started. If you'd like to participate, post in [Nextcloud App Dev](https://help.nextcloud.com/c/dev/app-dev/24) or [message me directly](https://help.nextcloud.com/u/ryanb/summary).
