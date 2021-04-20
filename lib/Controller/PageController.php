@@ -47,16 +47,16 @@ class PageController extends Controller
      */
     public function index()
     {
-        $this->check_for_new_settings();
-        $this->load_settings();
-        $this->show_report();
+        $this->checkForNewSettings();
+        $this->loadSettings();
+        $this->showReport();
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
         return new TemplateResponse('hledger', 'index', $this->settings);
     }
 
-    private function check_for_new_settings()
+    private function checkForNewSettings()
     {
         if (isset($_GET['hledger_folder'])) {
             $this->config->setAppValue('hledger', 'hledger_folder', $_GET['hledger_folder']);
@@ -69,7 +69,7 @@ class PageController extends Controller
         }
     }
 
-    private function load_settings()
+    private function loadSettings()
     {
         $this->settings = [
             'hledger_folder' => $this->config->getAppValue('hledger', 'hledger_folder', 'HLedger'),
@@ -78,19 +78,19 @@ class PageController extends Controller
         ];
     }
 
-    private function show_report()
+    private function showReport()
     {
         $hledger = $this->createHLedger();
         $tab = $_GET['tab'];
         if ($tab == 'balance') {
-            $this->show_csv_report($hledger->balanceSheet([
+            $this->showCsvReport($hledger->balanceSheet([
                 ['monthly'],
                 ['market'],
                 ['begin', 'thisyear'],
                 ['end', 'thismonth']
             ]));
         } elseif ($tab == 'income') {
-            $this->show_csv_report($hledger->incomeStatement([
+            $this->showCsvReport($hledger->incomeStatement([
                 ['monthly'],
                 ['market'],
                 ['begin', 'thisyear'],
@@ -107,17 +107,17 @@ class PageController extends Controller
                 'not:desc:opening balances'
             ]);
             array_unshift($report, ["Budget last month and this month","","","",""]);
-            $this->show_csv_report($report);
+            $this->showCsvReport($report);
         }
     }
 
-    private function show_csv_report($report)
+    private function showCsvReport($report)
     {
         $this->log('<table class="hledger-data">');
         foreach ($report as $row) {
             $outline = in_array(trim($row[0]), ['Account', 'Total:']) ? 'outline' : '';
 
-            if ($row[0] == 'Account' || $this->is_account_name($row[0])) {
+            if ($row[0] == 'Account' || $this->isAccountName($row[0])) {
                 $row[0] = "&nbsp;&nbsp;&nbsp;&nbsp;" . $row[0];
             }
 
@@ -131,7 +131,7 @@ class PageController extends Controller
         $this->log('</table>');
     }
 
-    private function is_account_name($s)
+    private function isAccountName($s)
     {
         $top_level_accounts = [
             'assets',
