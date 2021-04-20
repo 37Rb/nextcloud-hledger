@@ -49,11 +49,13 @@ class PageController extends Controller
     {
         $this->checkForNewSettings();
         $this->loadSettings();
-        $this->showReport();
+
+        $parameters = $this->settings;
+        $parameters['report'] = $this->getReport();
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
-        return new TemplateResponse('hledger', 'index', $this->settings);
+        return new TemplateResponse('hledger', 'index', $parameters);
     }
 
     private function checkForNewSettings()
@@ -78,24 +80,24 @@ class PageController extends Controller
         ];
     }
 
-    private function showReport()
+    private function getReport(): array
     {
         $hledger = $this->createHLedger();
         $tab = $_GET['tab'];
         if ($tab == 'balance') {
-            $this->showCsvReport($hledger->balanceSheet([
+            return $hledger->balanceSheet([
                 ['monthly'],
                 ['market'],
                 ['begin', 'thisyear'],
                 ['end', 'thismonth']
-            ]));
+            ]);
         } elseif ($tab == 'income') {
-            $this->showCsvReport($hledger->incomeStatement([
+            return $hledger->incomeStatement([
                 ['monthly'],
                 ['market'],
                 ['begin', 'thisyear'],
                 ['end', 'nextmonth']
-            ]));
+            ]);
         } else {
             $report = $hledger->balance([
                 ['monthly'],
@@ -107,51 +109,8 @@ class PageController extends Controller
                 'not:desc:opening balances'
             ]);
             array_unshift($report, ["Budget last month and this month","","","",""]);
-            $this->showCsvReport($report);
+            return $report;
         }
-    }
-
-    private function showCsvReport($report)
-    {
-        $this->log('<table class="hledger-data">');
-        foreach ($report as $row) {
-            $outline = in_array(trim($row[0]), ['Account', 'Total:']) ? 'outline' : '';
-
-            if ($row[0] == 'Account' || $this->isAccountName($row[0])) {
-                $row[0] = "&nbsp;&nbsp;&nbsp;&nbsp;" . $row[0];
-            }
-
-            $data = '';
-            for ($i = 1; $i < count($row); $i++) {
-                $data .= '<td class="' . $outline . '">' . $row[$i] . '</td>';
-            }
-
-            $this->log('<tr><td class="' . $outline . '">' . $row[0] . '</td>' . $data . '</tr>');
-        }
-        $this->log('</table>');
-    }
-
-    private function isAccountName($s)
-    {
-        $top_level_accounts = [
-            'assets',
-            'liabilities',
-            'equity',
-            'income',
-            'expenses'
-        ];
-        foreach ($top_level_accounts as $account) {
-            if (str_starts_with($s, $account . ':')) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function log($s)
-    {
-        global $hledgerlog;
-        $hledgerlog .= "\n" . $s;
     }
 
     private function createHLedger()
