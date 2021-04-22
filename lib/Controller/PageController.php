@@ -55,7 +55,7 @@ class PageController extends Controller
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
-        return new TemplateResponse('hledger', 'index', $parameters);
+        return new TemplateResponse('hledger', 'app', $parameters);
     }
 
     private function checkForNewSettings()
