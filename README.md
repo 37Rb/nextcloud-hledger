@@ -16,6 +16,10 @@ As a file storage system with desktop sync and mobile access, Nextcloud is a nat
 ![Balance Sheet](screenshots/BS.png "Balance Sheet")
 ![Files](screenshots/Files.png "Files")
 
+## Requirements
+
+This app uses [shell_exec](https://www.php.net/manual/en/function.shell-exec.php) and therefore shell_exec must be enabled in your server.
+
 ## Interested?
 
 This project is just getting started. If you'd like to participate, post in [Nextcloud App Dev](https://help.nextcloud.com/c/dev/app-dev/24) or [message me directly](https://help.nextcloud.com/u/ryanb/summary).
