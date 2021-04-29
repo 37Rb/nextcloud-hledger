@@ -20,6 +20,10 @@ As a file storage system with desktop sync and mobile access, Nextcloud is a nat
 
 This app uses [shell_exec](https://www.php.net/manual/en/function.shell-exec.php) and therefore shell_exec must be enabled in your server.
 
-## Interested?
+## Contact Us
 
-This project is just getting started. If you'd like to participate, post in [Nextcloud App Dev](https://help.nextcloud.com/c/dev/app-dev/24) or [message me directly](https://help.nextcloud.com/u/ryanb/summary).
+If you have any questions or would like to participate, let's talk!
+
+* [Github issues](https://github.com/37Rb/nextcloud-hledger/issues)
+* [Nextcloud app dev community](https://help.nextcloud.com/c/dev/app-dev/24)
+* [HLedger mailing list](https://groups.google.com/g/hledger)
