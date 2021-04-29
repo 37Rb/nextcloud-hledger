@@ -3,3 +3,5 @@
 /vendor/
 /node_modules/
 /bin/
+/js/hledger-main.js
+/js/hledger-main.js.map

@@ -1,6 +1,6 @@
 <?php
 script('hledger', 'hledger-main');
-style('hledger', 'style');
+//style('hledger', 'style');
 ?>
 
 <div id="content"></div>
