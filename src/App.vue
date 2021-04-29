@@ -6,9 +6,11 @@
 				<AppNavigationItem title="Income Statement" icon="icon-clippy" />
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" />
 			</template>
-			<AppNavigationSettings>
-				Example Settings
-			</AppNavigationSettings>
+			<template #footer>
+				<AppNavigationSettings>
+					Example Settings
+				</AppNavigationSettings>
+			</template>
 		</AppNavigation>
 		<AppContent>
 			Hello World!
