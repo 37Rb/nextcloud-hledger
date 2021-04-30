@@ -15,7 +15,7 @@
 		<AppContent>
 			<table class="hledger-data">
 				<tr v-for="row in report" :key="row.id">
-					<td v-for="cell in row" :key="cell.id" :class="{ outline: outlineRow(row[0]) }">
+					<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
 						{{ cell }}
 					</td>
 				</tr>
@@ -44,8 +44,11 @@ export default {
 	},
 	computed: {},
 	methods: {
-		outlineRow(x) {
+		shouldOutlineRow(x) {
 			return ['Account', 'Total:'].includes(x)
+		},
+		shouldIndentCell(x) {
+			return x === 'Account' || x.match(/^(assets|liabilities|equity|income|expenses):/g)
 		},
 	},
 }
