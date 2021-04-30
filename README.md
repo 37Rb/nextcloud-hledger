@@ -20,6 +20,22 @@ As a file storage system with desktop sync and mobile access, Nextcloud is a nat
 
 This app uses [shell_exec](https://www.php.net/manual/en/function.shell-exec.php) and therefore shell_exec must be enabled in your server.
 
+## Build & Develop
+
+Install dependencies.
+```
+$ npm install
+```
+
+Build assets.
+```
+$ npm run-script dev
+```
+Watch and build when files change.
+```
+$ npm run-script watch
+```
+
 ## Interested?
 
 This project is just getting started. If you'd like to participate, post in [Nextcloud App Dev](https://help.nextcloud.com/c/dev/app-dev/24) or [message me directly](https://help.nextcloud.com/u/ryanb/summary).
