@@ -31,11 +31,20 @@ class Configuration
 
     public function getSettings()
     {
-        return [
-            'hledger_folder' => $this->getSetting('hledger_folder'),
-            'journal_file' => $this->getSetting('journal_file'),
-            'budget_file' => $this->getSetting('budget_file')
-        ];
+        $settings = [];
+        foreach ($this->defaultSettings as $key => $value) {
+            $settings[$key] = $this->getSetting($key);
+        }
+        return $settings;
+    }
+
+    public function saveSettings($settings)
+    {
+        foreach ($settings as $key => $value) {
+            if (array_key_exists($key, $this->defaultSettings)) {
+                $this->saveSetting($key, $value);
+            }
+        }
     }
 
     public function getSetting($key)
@@ -43,7 +52,7 @@ class Configuration
         return $this->config->getAppValue($this->appName, $key, $this->defaultSettings[$key]);
     }
 
-    public function setSetting($key, $value)
+    public function saveSetting($key, $value)
     {
         $this->config->setAppValue($this->appName, $key, $value);
     }

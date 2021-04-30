@@ -7,6 +7,7 @@
 return [
     'routes' => [
 	   ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+	   ['name' => 'configuration_api#save_settings', 'url' => '/api/1/settings', 'verb' => 'PUT'],
 	   ['name' => 'report_api#balance_sheet', 'url' => '/api/1/balancesheet', 'verb' => 'GET'],
 	   ['name' => 'report_api#income_statement', 'url' => '/api/1/incomestatement', 'verb' => 'GET'],
 	   ['name' => 'report_api#budget_report', 'url' => '/api/1/budgetreport', 'verb' => 'GET'],

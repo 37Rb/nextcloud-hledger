@@ -8,7 +8,19 @@
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
-					Example Settings
+					<label for="hledger_folder">HLedger Folder</label>
+					<input id="hledger_folder"
+						v-model="settings.hledger_folder"
+						type="text">
+					<label for="journal_file">Journal File</label>
+					<input id="journal_file"
+						v-model="settings.journal_file"
+						type="text">
+					<label for="budget_file">Budget File</label>
+					<input id="budget_file"
+						v-model="settings.budget_file"
+						type="text">
+					<input type="submit" value="Save" @click="saveSettings">
 				</AppNavigationSettings>
 			</template>
 		</AppNavigation>
@@ -31,7 +43,7 @@ import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationS
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
-import { showError/* , showSuccess */ } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 export default {
 	name: 'App',
@@ -75,6 +87,14 @@ export default {
 				this.report = (await axios.get(this.apiUrl('balancesheet'))).data
 			} catch (e) {
 				showError(t('hledger', 'Error getting balance sheet'))
+			}
+		},
+		async saveSettings() {
+			try {
+				await axios.put(this.apiUrl('settings'), this.settings)
+				showSuccess(t('hledger', 'HLedger settings saved'))
+			} catch (e) {
+				showError(t('hledger', 'Error saving settings'))
 			}
 		},
 	},

@@ -43,8 +43,7 @@ class PageController extends Controller
      */
     public function index()
     {
-        $this->checkForNewSettings();
-        $parameters = $this->config->getSettings();
+        $parameters = ['settings' => $this->config->getSettings()];
 
         $hledger = new HLedger($this->config);
         $parameters['report'] = $hledger->budgetReport();
@@ -53,19 +52,6 @@ class PageController extends Controller
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
-        return new TemplateResponse($this->appName, 'app', $parameters);
-    }
-
-    private function checkForNewSettings()
-    {
-        if (isset($_GET['hledger_folder'])) {
-            $this->config->setSetting('hledger_folder', $_GET['hledger_folder']);
-        }
-        if (isset($_GET['journal_file'])) {
-            $this->config->setSetting('journal_file', $_GET['journal_file']);
-        }
-        if (isset($_GET['budget_file'])) {
-            $this->config->setSetting('budget_file', $_GET['budget_file']);
-        }
+        return new TemplateResponse($this->appName, 'app');
     }
 }
