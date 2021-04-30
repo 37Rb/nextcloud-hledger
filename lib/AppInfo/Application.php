@@ -23,6 +23,6 @@ class Application extends App implements IBootstrap
     public function boot(IBootContext $context): void
     {
         Util::addStyle('hledger', 'style');
-        Util::addScript('hledger', 'script');
+        // Util::addScript('hledger', 'script');
     }
 }

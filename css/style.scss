@@ -3,7 +3,7 @@
 }
 
 table.hledger-data {
-	padding: 12px !important;
+	padding: 20px !important;
 }
 
 table.hledger-data td {
@@ -14,4 +14,8 @@ table.hledger-data td {
 table.hledger-data td.outline {
 	border-top: 1px solid !important;
 	border-bottom: 1px solid !important;
+}
+
+table.hledger-data td.indent {
+	padding-left: 40px;
 }
