@@ -2,9 +2,9 @@
 	<Content :class="{'icon-loading': loading}" app-name="hledger">
 		<AppNavigation>
 			<template #list>
-				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" />
-				<AppNavigationItem title="Income Statement" icon="icon-clippy" />
-				<AppNavigationItem title="Balance Sheet" icon="icon-edit" />
+				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
+				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
+				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -30,6 +30,9 @@ import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationSettings'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import '@nextcloud/dialogs/styles/toast.scss'
+import { generateUrl } from '@nextcloud/router'
+import { showError/* , showSuccess */ } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
 export default {
 	name: 'App',
 	components: {
@@ -44,11 +47,35 @@ export default {
 	},
 	computed: {},
 	methods: {
+		apiUrl(x) {
+			return generateUrl('/apps/hledger/api/1/' + x)
+		},
 		shouldOutlineRow(x) {
 			return ['Account', 'Total:'].includes(x)
 		},
 		shouldIndentCell(x) {
-			return x === 'Account' || x.match(/^(assets|liabilities|equity|income|expenses):/g)
+			return ['Account', '<unbudgeted>'].includes(x) || x.match(/^(assets|liabilities|equity|income|expenses):/g)
+		},
+		async getBudget() {
+			try {
+				this.report = (await axios.get(this.apiUrl('budgetreport'))).data
+			} catch (e) {
+				showError(t('hledger', 'Error getting budget report'))
+			}
+		},
+		async getIncomeStatement() {
+			try {
+				this.report = (await axios.get(this.apiUrl('incomestatement'))).data
+			} catch (e) {
+				showError(t('hledger', 'Error getting income statement'))
+			}
+		},
+		async getBalanceSheet() {
+			try {
+				this.report = (await axios.get(this.apiUrl('balancesheet'))).data
+			} catch (e) {
+				showError(t('hledger', 'Error getting balance sheet'))
+			}
 		},
 	},
 }
