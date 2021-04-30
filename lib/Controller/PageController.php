@@ -52,6 +52,6 @@ class PageController extends Controller
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 
-        return new TemplateResponse($this->appName, 'app');
+        return new TemplateResponse($this->appName, 'index');
     }
 }
