@@ -6,14 +6,13 @@ require_once(__DIR__ . '/../../vendor/hledger/php-hledger/lib/HLedger.php');
 
 use OCP\IRequest;
 use OCP\IConfig;
+use OCP\IInitialStateService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
 use OCP\Files\IRootFolder;
-
 use OCA\Viewer\Event\LoadViewer;
 use OCP\EventDispatcher\IEventDispatcher;
-
 use HLedger\HLedger;
 
 class PageController extends Controller
@@ -22,6 +21,7 @@ class PageController extends Controller
     private $config;
     private $rootFolder;
     private $settings;
+    private $initialState;
 
     /** @var IEventDispatcher */
     private $eventDispatcher;
@@ -32,13 +32,15 @@ class PageController extends Controller
         $UserId,
         IConfig $config,
         IRootFolder $rootFolder,
-        IEventDispatcher $eventDispatcher
+        IEventDispatcher $eventDispatcher,
+        IInitialStateService $initialState
     ) {
         parent::__construct($AppName, $request);
         $this->userId = $UserId;
         $this->config = $config;
         $this->rootFolder = $rootFolder;
         $this->eventDispatcher = $eventDispatcher;
+        $this->initialState = $initialState;
     }
 
     /**
@@ -52,6 +54,8 @@ class PageController extends Controller
 
         $parameters = $this->settings;
         $parameters['report'] = $this->getReport();
+
+        $this->initialState->provideInitialState($this->appName, 'state', $parameters);
 
         $this->eventDispatcher->dispatch(LoadViewer::class, new LoadViewer());
 

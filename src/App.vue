@@ -13,7 +13,13 @@
 			</template>
 		</AppNavigation>
 		<AppContent>
-			Hello World!
+			<table class="hledger-data">
+				<tr v-for="row in report" :key="row.id">
+					<td v-for="cell in row" :key="cell.id" :class="{ outline: outlineRow(row[0]) }">
+						{{ cell }}
+					</td>
+				</tr>
+			</table>
 		</AppContent>
 	</Content>
 </template>
@@ -34,17 +40,13 @@ export default {
 		AppContent,
 	},
 	data() {
-		return {
-			loading: false,
-			message: 'Initial Message',
-			report: [
-				['A', 'B', 'C'],
-				[1, 2, 3],
-				[4, 5, 6],
-			],
-		}
+		return OCP.InitialState.loadState('hledger', 'state')
 	},
 	computed: {},
-	methods: {},
+	methods: {
+		outlineRow(x) {
+			return ['Account', 'Total:'].includes(x)
+		},
+	},
 }
 </script>
