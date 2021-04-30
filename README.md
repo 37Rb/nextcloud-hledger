@@ -22,18 +22,28 @@ This app uses [shell_exec](https://www.php.net/manual/en/function.shell-exec.php
 
 ## Build & Develop
 
-Install dependencies.
+Install backend dependencies.
+```
+$ composer install
+```
+
+Install frontend dependencies.
 ```
 $ npm install
 ```
 
-Build assets.
+Build frontend assets for development.
 ```
 $ npm run-script dev
 ```
-Watch and build when files change.
+Watch and build frontend assets as files change.
 ```
 $ npm run-script watch
+```
+
+Build frontend assets for production.
+```
+$ npm run-script build
 ```
 
 ## Contact Us
