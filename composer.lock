@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b7f284192a368b6f3753be05dcb406f6",
+    "content-hash": "500f1030cf18db5707bc12f2e0ad2ee3",
     "packages": [
         {
             "name": "hledger/php-hledger",
-            "version": "0.0.4",
+            "version": "0.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/37Rb/php-hledger.git",
-                "reference": "407e6f103a82782909e09b2e75d1c4b1936df29c"
+                "reference": "14ebd9c321536027a1efa36bad89f66dbe27f51e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/37Rb/php-hledger/zipball/407e6f103a82782909e09b2e75d1c4b1936df29c",
-                "reference": "407e6f103a82782909e09b2e75d1c4b1936df29c",
+                "url": "https://api.github.com/repos/37Rb/php-hledger/zipball/14ebd9c321536027a1efa36bad89f66dbe27f51e",
+                "reference": "14ebd9c321536027a1efa36bad89f66dbe27f51e",
                 "shasum": ""
             },
             "type": "library",
@@ -44,10 +44,10 @@
             ],
             "description": "Use HLedger from PHP",
             "support": {
-                "source": "https://github.com/37Rb/php-hledger/tree/0.0.4",
+                "source": "https://github.com/37Rb/php-hledger/tree/0.0.5",
                 "issues": "https://github.com/37Rb/php-hledger/issues"
             },
-            "time": "2021-04-21T15:00:37+00:00"
+            "time": "2021-04-22T19:53:41+00:00"
         }
     ],
     "packages-dev": [

@@ -28,7 +28,8 @@
 			<table class="hledger-data">
 				<tr v-for="row in report" :key="row.id">
 					<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
-						{{ cell }}
+						<a v-if="isSubAccount(cell)" href="#" @click="getAccountRegister(cell)">{{ cell }}</a>
+						<span v-else>{{ truncate(cell, 32) }}</span>
 					</td>
 				</tr>
 			</table>
@@ -62,11 +63,17 @@ export default {
 		apiUrl(x) {
 			return generateUrl('/apps/hledger/api/1/' + x)
 		},
+		truncate(text, stop, clamp) {
+			return text.slice(0, stop) + (stop < text.length ? clamp || '...' : '')
+		},
+		isSubAccount(x) {
+			return x.match(/^(assets|liabilities|equity|income|expenses):/g)
+		},
 		shouldOutlineRow(x) {
 			return ['Account', 'Total:'].includes(x)
 		},
 		shouldIndentCell(x) {
-			return ['Account', '<unbudgeted>'].includes(x) || x.match(/^(assets|liabilities|equity|income|expenses):/g)
+			return ['Account', '<unbudgeted>'].includes(x) || this.isSubAccount(x)
 		},
 		async getBudget() {
 			try {
@@ -87,6 +94,14 @@ export default {
 				this.report = (await axios.get(this.apiUrl('balancesheet'))).data
 			} catch (e) {
 				showError(t('hledger', 'Error getting balance sheet'))
+			}
+		},
+		async getAccountRegister(account) {
+			try {
+				const options = { params: { account } }
+				this.report = (await axios.get(this.apiUrl('accountregister'), options)).data
+			} catch (e) {
+				showError(t('hledger', 'Error getting account ' + account + ' register'))
 			}
 		},
 		async saveSettings() {

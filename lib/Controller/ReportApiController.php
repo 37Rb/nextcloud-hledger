@@ -43,4 +43,10 @@ class ReportApiController extends ApiController
     {
         return new DataResponse($this->hledger->balanceSheet());
     }
+
+    public function accountRegister()
+    {
+        $account = $this->request->getParam('account');
+        return new DataResponse($this->hledger->accountRegister($account));
+    }
 }

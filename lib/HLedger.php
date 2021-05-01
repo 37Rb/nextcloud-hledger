@@ -49,6 +49,14 @@ class HLedger
         ]);
     }
 
+    public function accountRegister($account)
+    {
+        $report = $this->createHLedger()->accountRegister([['market']], [$account]);
+        return array_map(function ($row) {
+            return array_slice($row, 1);  // remove txnidx column
+        }, $report);
+    }
+
     private function createHLedger()
     {
         return new \Hledger\HLedger([
