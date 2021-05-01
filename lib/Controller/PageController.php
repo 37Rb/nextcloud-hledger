@@ -46,7 +46,7 @@ class PageController extends Controller
         $parameters = ['settings' => $this->config->getSettings()];
 
         $hledger = new HLedger($this->config);
-        $parameters['report'] = $hledger->budgetReport();
+        $parameters['report'] = $hledger->balanceSheet();
 
         $this->initialState->provideInitialState($this->appName, 'state', $parameters);
 

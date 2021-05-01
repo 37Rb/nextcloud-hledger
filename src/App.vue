@@ -2,9 +2,9 @@
 	<Content :class="{'icon-loading': loading}" app-name="hledger">
 		<AppNavigation>
 			<template #list>
-				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
-				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
+				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
+				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
