@@ -113,7 +113,8 @@ export default {
 			}
 		},
 		editTransaction(row) {
-			OCA.Viewer.open({ path: '/HLedger/journal.txt' })
+			const journalPath = '/' + this.settings.hledger_folder + '/' + this.settings.journal_file
+			OCA.Viewer.open({ path: journalPath })
 
 			let attempts = 0
 			const interval = setInterval(function() {
