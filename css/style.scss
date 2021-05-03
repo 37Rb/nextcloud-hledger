@@ -2,20 +2,31 @@
 	flex-direction: column;
 }
 
-table.hledger-data {
+table.hledger-report {
 	padding: 20px !important;
 }
 
-table.hledger-data td {
+table.hledger-report td {
 	padding-left: 20px;
 	padding-right: 20px;
 }
 
-table.hledger-data td.outline {
+table.hledger-report td.outline {
 	border-top: 1px solid !important;
 	border-bottom: 1px solid !important;
 }
 
-table.hledger-data td.indent {
+table.hledger-report td.indent {
 	padding-left: 40px;
+}
+
+table.hledger-report div {
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+
+table.hledger-report button {
+	min-height: 0;
+	padding-top: 1px;
+	padding-bottom: 1px;
 }

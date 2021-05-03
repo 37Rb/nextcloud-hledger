@@ -25,11 +25,16 @@
 			</template>
 		</AppNavigation>
 		<AppContent>
-			<table class="hledger-data">
+			<table class="hledger-report">
 				<tr v-for="row in report" :key="row.id">
 					<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
 						<a v-if="isSubAccount(cell)" href="#" @click="getAccountRegister(cell)">{{ cell }}</a>
-						<span v-else>{{ truncate(cell, 32) }}</span>
+						<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
+							edit
+						</button>
+						<div v-else>
+							{{ truncate(cell, 32) }}
+						</div>
 					</td>
 				</tr>
 			</table>
@@ -99,10 +104,52 @@ export default {
 		async getAccountRegister(account) {
 			try {
 				const options = { params: { account } }
-				this.report = (await axios.get(this.apiUrl('accountregister'), options)).data
+				const report = (await axios.get(this.apiUrl('accountregister'), options)).data
+				this.report = report.map(function(row) {
+					return row.concat([row[0].trim() === 'date' ? '' : 'edit'])
+				})
 			} catch (e) {
 				showError(t('hledger', 'Error getting account ' + account + ' register'))
 			}
+		},
+		editTransaction(row) {
+			OCA.Viewer.open({ path: '/HLedger/journal.txt' })
+
+			let attempts = 0
+			const interval = setInterval(function() {
+				const jqeditor = window.jQuery('#editor')
+				if (jqeditor.length === 0) {
+					attempts++
+					if (attempts === 10) {
+						clearInterval(interval)
+					}
+					return
+				}
+
+				clearInterval(interval)
+
+				const editor = jqeditor.get(0)
+				const textnode = window.jQuery('code', jqeditor).get(0)
+
+				const date = row[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+				const description = row[2].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+				const pattern = '^.*' + date + '.+' + description + '.*$'
+				const match = (new RegExp(pattern, 'gm')).exec(textnode.innerText)
+				if (!match) {
+					showError(t('hledger', 'No transaction with ' + row[0] + ' and ' + row[2]))
+					return
+				}
+
+				const range = document.createRange()
+				range.setStart(textnode.firstChild, match.index)
+				range.setEnd(textnode.firstChild, match.index + match[0].length)
+
+				const selection = window.getSelection()
+				selection.removeAllRanges()
+				selection.addRange(range)
+
+				editor.scroll(0, range.getBoundingClientRect().top - textnode.getBoundingClientRect().top)
+			}, 1000)
 		},
 		async saveSettings() {
 			try {
