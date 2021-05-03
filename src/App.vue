@@ -1,5 +1,5 @@
 <template>
-	<Content :class="{'icon-loading': loading}" app-name="hledger">
+	<Content app-name="hledger">
 		<AppNavigation>
 			<template #list>
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
@@ -26,7 +26,7 @@
 		</AppNavigation>
 		<AppContent>
 			<table class="hledger-report">
-				<tr v-for="row in report" :key="row.id">
+				<tr v-for="row in report.data" :key="row.id">
 					<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
 						<a v-if="isSubAccount(cell)" href="#" @click="getAccountRegister(cell)">{{ cell }}</a>
 						<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
@@ -82,47 +82,63 @@ export default {
 		},
 		async getBudget() {
 			try {
-				this.report = (await axios.get(this.apiUrl('budgetreport'))).data
+				this.report.data = (await axios.get(this.apiUrl('budgetreport'))).data
+				this.report.name = 'budget'
+				this.report.args = []
 			} catch (e) {
-				showError(t('hledger', 'Error getting budget report'))
+				showError(t('hledger', 'Error getting budget report: ' + e.message))
 			}
 		},
 		async getIncomeStatement() {
 			try {
-				this.report = (await axios.get(this.apiUrl('incomestatement'))).data
+				this.report.data = (await axios.get(this.apiUrl('incomestatement'))).data
+				this.report.name = 'incomestatement'
+				this.report.args = []
 			} catch (e) {
-				showError(t('hledger', 'Error getting income statement'))
+				showError(t('hledger', 'Error getting income statement: ' + e.message))
 			}
 		},
 		async getBalanceSheet() {
 			try {
-				this.report = (await axios.get(this.apiUrl('balancesheet'))).data
+				this.report.data = (await axios.get(this.apiUrl('balancesheet'))).data
+				this.report.name = 'balancesheet'
+				this.report.args = []
 			} catch (e) {
-				showError(t('hledger', 'Error getting balance sheet'))
+				showError(t('hledger', 'Error getting balance sheet: ' + e.message))
 			}
 		},
 		async getAccountRegister(account) {
 			try {
 				const options = { params: { account } }
 				const report = (await axios.get(this.apiUrl('accountregister'), options)).data
-				this.report = report.map(function(row) {
+				this.report.data = report.map(function(row) {
 					return row.concat([row[0].trim() === 'date' ? '' : 'edit'])
 				})
+				this.report.name = 'accountregister'
+				this.report.args = [account]
 			} catch (e) {
-				showError(t('hledger', 'Error getting account ' + account + ' register'))
+				showError(t('hledger', 'Error getting account ' + account + ' register: ' + e.message))
 			}
 		},
 		editTransaction(row) {
+			const self = this
 			const journalPath = '/' + this.settings.hledger_folder + '/' + this.settings.journal_file
-			OCA.Viewer.open({ path: journalPath })
+			OCA.Viewer.open({
+				path: journalPath,
+				async onClose() {
+					showSuccess(t('hledger', 'HLedger journal saved'))
+					self.getAccountRegister(self.report.args[0])
+				},
+			})
 
 			let attempts = 0
 			const interval = setInterval(function() {
 				const jqeditor = window.jQuery('#editor')
 				if (jqeditor.length === 0) {
 					attempts++
-					if (attempts === 10) {
+					if (attempts === 30) {
 						clearInterval(interval)
+						showError(t('hledger', 'Failed to open ' + journalPath))
 					}
 					return
 				}
