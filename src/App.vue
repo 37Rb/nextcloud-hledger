@@ -133,8 +133,8 @@ export default {
 
 			let attempts = 0
 			const interval = setInterval(function() {
-				const jqeditor = window.jQuery('#editor')
-				if (jqeditor.length === 0) {
+				const found = self.findEditorTextNode()
+				if (!found) {
 					attempts++
 					if (attempts === 30) {
 						clearInterval(interval)
@@ -144,29 +144,43 @@ export default {
 				}
 
 				clearInterval(interval)
-
-				const editor = jqeditor.get(0)
-				const textnode = window.jQuery('code', jqeditor).get(0)
-
-				const date = row[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-				const description = row[2].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-				const pattern = '^.*' + date + '.+' + description + '.*$'
-				const match = (new RegExp(pattern, 'gm')).exec(textnode.innerText)
-				if (!match) {
-					showError(t('hledger', 'No transaction with ' + row[0] + ' and ' + row[2]))
-					return
-				}
-
-				const range = document.createRange()
-				range.setStart(textnode.firstChild, match.index)
-				range.setEnd(textnode.firstChild, match.index + match[0].length)
-
-				const selection = window.getSelection()
-				selection.removeAllRanges()
-				selection.addRange(range)
-
-				editor.scroll(0, range.getBoundingClientRect().top - textnode.getBoundingClientRect().top)
+				self.goToTransaction(found.editor, found.textnode, row[0], row[2])
 			}, 1000)
+		},
+		findEditorTextNode() {
+			const jqeditor = window.jQuery('#editor')
+			if (jqeditor.length === 0) {
+				return null
+			}
+			const jqcode = window.jQuery('code', jqeditor)
+			if (jqcode.length === 0) {
+				return null
+			}
+			return {
+				editor: jqeditor.get(0),
+				textnode: jqcode.get(0),
+			}
+		},
+		goToTransaction(editor, textnode, date, description) {
+			const pattern = '^.*' + this.regexEscape(date) + '.+' + this.regexEscape(description) + '.*$'
+			const match = (new RegExp(pattern, 'gm')).exec(textnode.innerText)
+			if (!match) {
+				showError(t('hledger', 'No transaction with ' + date + ' and ' + description))
+				return
+			}
+
+			const range = document.createRange()
+			range.setStart(textnode.firstChild, match.index)
+			range.setEnd(textnode.firstChild, match.index + match[0].length)
+
+			const selection = window.getSelection()
+			selection.removeAllRanges()
+			selection.addRange(range)
+
+			editor.scroll(0, range.getBoundingClientRect().top - textnode.getBoundingClientRect().top)
+		},
+		regexEscape(x) {
+			return x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 		},
 		async saveSettings() {
 			try {
