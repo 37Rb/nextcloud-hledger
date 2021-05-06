@@ -51,6 +51,7 @@ class PageController extends Controller
 			'data' => $hledger->balanceSheet(),
 			'args' => []
 		];
+		$parameters['accounts'] = $hledger->accounts();
 
         $this->initialState->provideInitialState($this->appName, 'state', $parameters);
 

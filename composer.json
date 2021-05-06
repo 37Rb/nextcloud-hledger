@@ -15,7 +15,7 @@
         }
       ],
     "require": {
-        "hledger/php-hledger": "^0.0.5"
+        "hledger/php-hledger": "^0.0.9"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.4"

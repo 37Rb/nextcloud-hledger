@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "500f1030cf18db5707bc12f2e0ad2ee3",
+    "content-hash": "a063aafe250b5c1c27b70a9183896013",
     "packages": [
         {
             "name": "hledger/php-hledger",
-            "version": "0.0.5",
+            "version": "0.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/37Rb/php-hledger.git",
-                "reference": "14ebd9c321536027a1efa36bad89f66dbe27f51e"
+                "reference": "7c3343593d769935f55fa1ebe9488d15a1c3486b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/37Rb/php-hledger/zipball/14ebd9c321536027a1efa36bad89f66dbe27f51e",
-                "reference": "14ebd9c321536027a1efa36bad89f66dbe27f51e",
+                "url": "https://api.github.com/repos/37Rb/php-hledger/zipball/7c3343593d769935f55fa1ebe9488d15a1c3486b",
+                "reference": "7c3343593d769935f55fa1ebe9488d15a1c3486b",
                 "shasum": ""
             },
             "type": "library",
@@ -44,10 +44,10 @@
             ],
             "description": "Use HLedger from PHP",
             "support": {
-                "source": "https://github.com/37Rb/php-hledger/tree/0.0.5",
+                "source": "https://github.com/37Rb/php-hledger/tree/0.0.9",
                 "issues": "https://github.com/37Rb/php-hledger/issues"
             },
-            "time": "2021-04-22T19:53:41+00:00"
+            "time": "2021-05-06T16:46:53+00:00"
         }
     ],
     "packages-dev": [
@@ -1368,16 +1368,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v4.4.21",
+            "version": "v4.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "3871c720871029f008928244e56cf43497da7e9d"
+                "reference": "1c2fd24147961525eaefb65b11987cab75adab59"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/3871c720871029f008928244e56cf43497da7e9d",
-                "reference": "3871c720871029f008928244e56cf43497da7e9d",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/1c2fd24147961525eaefb65b11987cab75adab59",
+                "reference": "1c2fd24147961525eaefb65b11987cab75adab59",
                 "shasum": ""
             },
             "require": {
@@ -1432,7 +1432,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-03-05T17:58:50+00:00"
+            "time": "2021-04-23T12:09:37+00:00"
         },
         {
             "name": "webmozart/assert",

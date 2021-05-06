@@ -29,6 +29,10 @@ class HLedger
         return $report;
     }
 
+	public function accounts() {
+		return $this->createHLedger()->accounts();
+	}
+
     public function incomeStatement()
     {
         return $this->createHLedger()->incomeStatement([
