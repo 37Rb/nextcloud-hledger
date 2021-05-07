@@ -55,15 +55,16 @@
 					</select>
 					<input v-model="transaction.code"
 						type="text"
-						placeholder="code">
+						class="t-code"
+						placeholder="code"><br>
 					<input v-model="transaction.description"
 						type="text"
-						class="wide"
+						class="t-description"
 						placeholder="description">
 					<input v-model="transaction.comment"
 						type="text"
-						class="wide"
-						placeholder="comment">
+						class="t-comment"
+						placeholder="comment"><br>
 					<ul class="postings">
 						<li v-for="(posting, index) in transaction.postings" :key="posting.id">
 							<select v-model="posting.status">
@@ -77,12 +78,15 @@
 							</select>
 							<input v-model="posting.account"
 								type="text"
+								class="p-account"
 								placeholder="account">
 							<input v-model="posting.amount"
 								type="text"
+								class="p-amount"
 								placeholder="amount">
 							<input v-model="posting.comment"
 								type="text"
+								class="p-comment"
 								placeholder="comment">
 							<button v-if="index > 1" @click="removePosting(index)">
 								X
@@ -95,7 +99,9 @@
 					<button :disabled="transactionInvalid" @click="addTransaction">
 						add transaction
 					</button>
-					<span>{{ transactionInvalid }}</span>
+					<div class="t-validation">
+						{{ transactionInvalid }}
+					</div>
 				</div>
 			</Modal>
 		</div>

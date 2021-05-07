@@ -32,10 +32,28 @@ table.hledger-report button {
 }
 
 div.hledger-add-transactions {
-	width: 80vw;
 	padding: 20px;
 }
 
-div.hledger-add-transactions input.wide {
-	width: 100%;
+div.hledger-add-transactions input.t-code {
+	width: 69px;
+}
+
+div.hledger-add-transactions input.t-description,
+div.hledger-add-transactions input.t-comment,
+div.hledger-add-transactions input.p-comment {
+	width: 334px;
+}
+
+div.hledger-add-transactions input.p-account {
+	width: 200px;
+}
+
+div.hledger-add-transactions input.p-amount {
+	width: 75px;
+}
+
+div.hledger-add-transactions div.t-validation {
+	display: inline-block;
+	width: 434px;
 }
