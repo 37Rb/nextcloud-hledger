@@ -5,7 +5,7 @@
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
 				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
 				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
-				<AppNavigationItem title="Add Transactions" icon="icon-toggle-filelist" @click="startAddingTransactions" />
+				<AppNavigationItem title="Add Transactions" icon="icon-add" @click="startAddingTransactions" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -41,7 +41,7 @@
 			</table>
 		</AppContent>
 		<div>
-			<Modal v-if="transaction.visible" @close="stopAddingTransactions">
+			<Modal v-if="transaction.visible" title="Add Transactions" @close="stopAddingTransactions">
 				<div class="hledger-add-transactions">
 					<DatetimePicker v-model="transaction.date" value-type="format" />
 					<select v-model="transaction.status">
