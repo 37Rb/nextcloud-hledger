@@ -40,6 +40,7 @@ class HLedger
         if (fwrite($f, $s) != strlen($s)) {
             throw new \Exception("Failed to write transaction");
         }
+		$file->touch(); // seems to help trigger syncing
     }
 
     public function accounts()
