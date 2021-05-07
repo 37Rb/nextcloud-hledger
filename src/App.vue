@@ -124,7 +124,9 @@ export default {
 		DatetimePicker,
 	},
 	data() {
-		return OCP.InitialState.loadState('hledger', 'state')
+		const state = OCP.InitialState.loadState('hledger', 'state')
+		this.initializeTransaction(state)
+		return state
 	},
 	computed: {},
 	methods: {
@@ -150,12 +152,7 @@ export default {
 			this.transaction.visible = false
 		},
 		addPosting() {
-			this.transaction.postings.push({
-				status: '',
-				account: '',
-				amount: '',
-				comment: '',
-			})
+			this.transaction.postings.push(this.newPosting())
 		},
 		removePosting(index) {
 			this.transaction.postings.splice(index, 1)
@@ -163,17 +160,35 @@ export default {
 		async addTransaction() {
 			try {
 				await axios.post(this.apiUrl('transaction'), this.transaction)
-				showSuccess(t('hledger', 'Transaction added'))
-				this.transaction = {
-					date: '',
-					status: '',
-					code: '',
-					description: '',
-					comment: '',
-					postings: [],
-				}
+				const snippet = this.truncate((this.transaction.code + ' ' + this.transaction.description).trim(), 20)
+				showSuccess(t('hledger', 'Added ' + snippet))
+				this.initializeTransaction(this)
 			} catch (e) {
 				showError(t('hledger', 'Error adding transaction: ' + e.message))
+			}
+		},
+		initializeTransaction(state) {
+			if (!('transaction' in state)) {
+				state.transaction = {
+					visible: false,
+					date: new Date().toISOString().split('T')[0],
+					postings: [],
+				}
+			}
+			state.transaction.status = ''
+			state.transaction.code = ''
+			state.transaction.description = ''
+			state.transaction.comment = ''
+			state.transaction.postings.splice(0, state.transaction.postings.length)
+			state.transaction.postings.push(this.newPosting())
+			state.transaction.postings.push(this.newPosting())
+		},
+		newPosting() {
+			return {
+				status: '',
+				account: '',
+				amount: '',
+				comment: '',
 			}
 		},
 		async getBudget() {

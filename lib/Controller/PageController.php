@@ -50,15 +50,6 @@ class PageController extends Controller
             'args' => []
         ];
         $parameters['accounts'] = $hledger->accounts();
-        $parameters['transaction'] = [
-            'visible' => false,
-            'date' => date('Y-m-d'),
-            'status' => '',
-            'code' => '',
-            'description' => '',
-            'comment' => '',
-            'postings' => []
-        ];
 
         $this->initialState->provideInitialState($this->appName, 'state', $parameters);
 
