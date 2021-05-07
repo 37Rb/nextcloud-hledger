@@ -1,5 +1,9 @@
 <?php
+
 namespace OCA\HLedger;
+
+// TODO Why isn't this autoloading???
+require_once(__DIR__ . '/../vendor/hledger/php-hledger/lib/HLedger.php');
 
 use OCA\HLedger\Configuration;
 
@@ -29,9 +33,19 @@ class HLedger
         return $report;
     }
 
-	public function accounts() {
-		return $this->createHLedger()->accounts();
-	}
+    public function addTransaction($file, $transaction)
+    {
+        $s = PHP_EOL . $this->createHLedger()->makeTransaction($transaction) . PHP_EOL;
+        $f = $file->fopen('a');
+        if (fwrite($f, $s) != strlen($s)) {
+            throw new \Exception("Failed to write transaction");
+        }
+    }
+
+    public function accounts()
+    {
+        return $this->createHLedger()->accounts();
+    }
 
     public function incomeStatement()
     {
@@ -64,8 +78,8 @@ class HLedger
     private function createHLedger()
     {
         return new \Hledger\HLedger([
-            ['file', $this->config->getFilePath($this->config->getSetting('journal_file'))],
-            ['file', $this->config->getFilePath($this->config->getSetting('budget_file'))]
+            ['file', $this->config->getOperatingSystemPath($this->config->getSetting('journal_file'))],
+            ['file', $this->config->getOperatingSystemPath($this->config->getSetting('budget_file'))]
         ]);
     }
 }

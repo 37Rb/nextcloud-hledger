@@ -30,3 +30,17 @@ table.hledger-report button {
 	padding-top: 1px;
 	padding-bottom: 1px;
 }
+
+div.hledger-add-transactions {
+	width: 80vw;
+	margin: 10vw 0;
+	padding: 20px;
+}
+
+div.hledger-add-transactions input.wide {
+	width: 100%;
+}
+
+div.hledger-add-transactions .postings {
+	margin-left: 20px;
+}

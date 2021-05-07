@@ -1,8 +1,6 @@
 <?php
-namespace OCA\HLedger\Controller;
 
-// TODO Why isn't this autoloading???
-require_once(__DIR__ . '/../../vendor/hledger/php-hledger/lib/HLedger.php');
+namespace OCA\HLedger\Controller;
 
 use OCP\IRequest;
 use OCP\IConfig;
@@ -47,11 +45,20 @@ class PageController extends Controller
 
         $hledger = new HLedger($this->config);
         $parameters['report'] = [
-			'name' => 'balancesheet',
-			'data' => $hledger->balanceSheet(),
-			'args' => []
-		];
-		$parameters['accounts'] = $hledger->accounts();
+            'name' => 'balancesheet',
+            'data' => $hledger->balanceSheet(),
+            'args' => []
+        ];
+        $parameters['accounts'] = $hledger->accounts();
+        $parameters['transaction'] = [
+            'visible' => false,
+            'date' => date('Y-m-d'),
+            'status' => '',
+            'code' => '',
+            'description' => '',
+            'comment' => '',
+            'postings' => []
+        ];
 
         $this->initialState->provideInitialState($this->appName, 'state', $parameters);
 

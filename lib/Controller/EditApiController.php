@@ -6,11 +6,11 @@ use OCP\IRequest;
 use OCP\IConfig;
 use OCP\Files\IRootFolder;
 use OCP\AppFramework\ApiController;
-use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCA\HLedger\Configuration;
 use OCA\HLedger\HLedger;
 
-class ReportApiController extends ApiController
+class EditApiController extends ApiController
 {
     private $config;
     private $hledger;
@@ -27,24 +27,12 @@ class ReportApiController extends ApiController
         $this->hledger = new HLedger($this->config);
     }
 
-    public function budgetReport()
+    public function addTransaction($settings)
     {
-        return new DataResponse($this->hledger->budgetReport());
-    }
-
-    public function incomeStatement()
-    {
-        return new DataResponse($this->hledger->incomeStatement());
-    }
-
-    public function balanceSheet()
-    {
-        return new DataResponse($this->hledger->balanceSheet());
-    }
-
-    public function accountRegister()
-    {
-        $account = $this->request->getParam('account');
-        return new DataResponse($this->hledger->accountRegister($account));
+        $file = $this->config->getJournalFile();
+        $transaction = $this->request->getParams();
+        $transaction['date'] = \DateTime::createFromFormat('Y-m-d', $transaction['date']);
+        $this->hledger->addTransaction($file, $transaction);
+        return new JSONResponse([]);
     }
 }

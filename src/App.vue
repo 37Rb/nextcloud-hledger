@@ -5,6 +5,7 @@
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
 				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
 				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
+				<AppNavigationItem title="Add Transactions" icon="icon-toggle-filelist" @click="startAddingTransactions" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -39,6 +40,64 @@
 				</tr>
 			</table>
 		</AppContent>
+		<div>
+			<Modal v-if="transaction.visible" @close="stopAddingTransactions">
+				<div class="hledger-add-transactions">
+					<DatetimePicker v-model="transaction.date" value-type="format" />
+					<select v-model="transaction.status">
+						<option value="" />
+						<option value="!">
+							!
+						</option>
+						<option value="*">
+							*
+						</option>
+					</select>
+					<input v-model="transaction.code"
+						type="text"
+						placeholder="code">
+					<input v-model="transaction.description"
+						type="text"
+						class="wide"
+						placeholder="description">
+					<input v-model="transaction.comment"
+						type="text"
+						class="wide"
+						placeholder="comment">
+					<ul class="postings">
+						<li v-for="(posting, index) in transaction.postings" :key="posting.id">
+							<select v-model="posting.status">
+								<option value="" />
+								<option value="!">
+									!
+								</option>
+								<option value="*">
+									*
+								</option>
+							</select>
+							<input v-model="posting.account"
+								type="text"
+								placeholder="account">
+							<input v-model="posting.amount"
+								type="text"
+								placeholder="amount">
+							<input v-model="posting.comment"
+								type="text"
+								placeholder="comment">
+							<button @click="removePosting(index)">
+								X
+							</button>
+						</li>
+					</ul>
+					<button @click="addPosting">
+						add posting
+					</button>
+					<button @click="addTransaction">
+						add transaction
+					</button>
+				</div>
+			</Modal>
+		</div>
 	</Content>
 </template>
 <script>
@@ -47,6 +106,8 @@ import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationSettings'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
+import Modal from '@nextcloud/vue/dist/Components/Modal'
+import DatetimePicker from '@nextcloud/vue/dist/Components/DatetimePicker'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -59,6 +120,8 @@ export default {
 		AppNavigationItem,
 		AppNavigationSettings,
 		AppContent,
+		Modal,
+		DatetimePicker,
 	},
 	data() {
 		return OCP.InitialState.loadState('hledger', 'state')
@@ -79,6 +142,39 @@ export default {
 		},
 		shouldIndentCell(x) {
 			return ['Account', '<unbudgeted>'].includes(x) || this.isSubAccount(x)
+		},
+		startAddingTransactions() {
+			this.transaction.visible = true
+		},
+		stopAddingTransactions() {
+			this.transaction.visible = false
+		},
+		addPosting() {
+			this.transaction.postings.push({
+				status: '',
+				account: '',
+				amount: '',
+				comment: '',
+			})
+		},
+		removePosting(index) {
+			this.transaction.postings.splice(index, 1)
+		},
+		async addTransaction() {
+			try {
+				await axios.post(this.apiUrl('transaction'), this.transaction)
+				showSuccess(t('hledger', 'Transaction added'))
+				this.transaction = {
+					date: '',
+					status: '',
+					code: '',
+					description: '',
+					comment: '',
+					postings: [],
+				}
+			} catch (e) {
+				showError(t('hledger', 'Error adding transaction: ' + e.message))
+			}
 		},
 		async getBudget() {
 			try {
@@ -185,7 +281,7 @@ export default {
 		async saveSettings() {
 			try {
 				await axios.put(this.apiUrl('settings'), this.settings)
-				showSuccess(t('hledger', 'HLedger settings saved'))
+				showSuccess(t('hledger', 'Settings saved'))
 			} catch (e) {
 				showError(t('hledger', 'Error saving settings'))
 			}

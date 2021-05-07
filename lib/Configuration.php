@@ -1,4 +1,5 @@
 <?php
+
 namespace OCA\HLedger;
 
 use OCP\IConfig;
@@ -57,7 +58,14 @@ class Configuration
         $this->config->setAppValue($this->appName, $key, $value);
     }
 
-    public function getFilePath($file)
+    public function getJournalFile()
+    {
+        $userFolder = $this->rootFolder->getUserFolder($this->userId);
+        $hledgerFolder = $userFolder->get($this->getSetting('hledger_folder'));
+        return $hledgerFolder->get($this->getSetting('journal_file'));
+    }
+
+    public function getOperatingSystemPath($file)
     {
         $userFiles = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
         $filePath = $this->rootFolder->getFullPath($this->getSetting('hledger_folder') . '/' . $file);

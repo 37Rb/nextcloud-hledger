@@ -12,5 +12,6 @@ return [
 	   ['name' => 'report_api#income_statement', 'url' => '/api/1/incomestatement', 'verb' => 'GET'],
 	   ['name' => 'report_api#budget_report', 'url' => '/api/1/budgetreport', 'verb' => 'GET'],
 	   ['name' => 'report_api#account_register', 'url' => '/api/1/accountregister', 'verb' => 'GET'],
+	   ['name' => 'edit_api#add_transaction', 'url' => '/api/1/transaction', 'verb' => 'POST'],
     ]
 ];
