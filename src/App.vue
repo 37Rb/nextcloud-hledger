@@ -92,9 +92,10 @@
 					<button @click="addPosting">
 						add posting
 					</button>
-					<button @click="addTransaction">
+					<button :disabled="transactionInvalid" @click="addTransaction">
 						add transaction
 					</button>
+					<span>{{ transactionInvalid }}</span>
 				</div>
 			</Modal>
 		</div>
@@ -128,7 +129,28 @@ export default {
 		this.initializeTransaction(state)
 		return state
 	},
-	computed: {},
+	computed: {
+		transactionInvalid() {
+			if (!this.transaction.code && !this.transaction.description) {
+				return 'Transaction code or description required'
+			}
+			let sum = 0
+			for (let i = 0; i < this.transaction.postings.length; i++) {
+				const posting = this.transaction.postings[i]
+				if (!posting.account) {
+					return 'Posting ' + (i + 1) + ' account required'
+				}
+				if (!posting.amount || isNaN(posting.amount)) {
+					return 'Posting ' + (i + 1) + ' numeric amount required'
+				}
+				sum += parseFloat(posting.amount)
+			}
+			if (sum > 0.001) {
+				return 'Transaction does not balance: ' + sum
+			}
+			return null
+		},
+	},
 	methods: {
 		apiUrl(x) {
 			return generateUrl('/apps/hledger/api/1/' + x)
@@ -146,6 +168,7 @@ export default {
 			return ['Account', '<unbudgeted>'].includes(x) || this.isSubAccount(x)
 		},
 		startAddingTransactions() {
+			this.initializeTransaction(this)
 			this.transaction.visible = true
 		},
 		stopAddingTransactions() {
