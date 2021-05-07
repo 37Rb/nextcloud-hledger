@@ -84,7 +84,7 @@
 							<input v-model="posting.comment"
 								type="text"
 								placeholder="comment">
-							<button @click="removePosting(index)">
+							<button v-if="index > 1" @click="removePosting(index)">
 								X
 							</button>
 						</li>
