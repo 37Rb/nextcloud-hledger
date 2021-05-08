@@ -46,6 +46,10 @@ div.hledger-add-transactions input.p-comment {
 	width: 334px;
 }
 
+div.hledger-add-transactions div#autosuggest {
+	display: inline-block;
+}
+
 div.hledger-add-transactions input.p-account {
 	width: 200px;
 }

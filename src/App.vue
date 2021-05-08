@@ -76,10 +76,13 @@
 									*
 								</option>
 							</select>
-							<input v-model="posting.account"
-								type="text"
-								class="p-account"
-								placeholder="account">
+							<VueAutosuggest v-model="posting.account"
+								:suggestions="filterAccounts(posting.account)"
+								:input-props="{id:'p'+index+'_account', class:'p-account', placeholder:'account'}">
+								<template slot-scope="{suggestion}">
+									<span>{{ suggestion.item }}</span>
+								</template>
+							</VueAutosuggest>
 							<input v-model="posting.amount"
 								type="text"
 								class="p-amount"
@@ -119,6 +122,7 @@ import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
+import { VueAutosuggest } from 'vue-autosuggest'
 export default {
 	name: 'App',
 	components: {
@@ -129,6 +133,7 @@ export default {
 		AppContent,
 		Modal,
 		DatetimePicker,
+		VueAutosuggest,
 	},
 	data() {
 		const state = OCP.InitialState.loadState('hledger', 'state')
@@ -219,6 +224,13 @@ export default {
 				amount: '',
 				comment: '',
 			}
+		},
+		filterAccounts(x) {
+			return [{
+				data: this.accounts.filter(account => {
+					return account.toLowerCase().includes(x.toLowerCase())
+				}),
+			}]
 		},
 		async getBudget() {
 			try {
