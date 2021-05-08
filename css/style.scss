@@ -50,6 +50,10 @@ div.hledger-add-transactions div#autosuggest {
 	display: inline-block;
 }
 
+div.hledger-add-transactions .autosuggest__results-item--highlighted {
+  background-color: rgba(51, 217, 178, 0.2);
+}
+
 div.hledger-add-transactions input.p-account {
 	width: 200px;
 }
