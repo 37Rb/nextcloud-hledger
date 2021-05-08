@@ -40,6 +40,7 @@ class HLedger
         if (fwrite($f, $s) != strlen($s)) {
             throw new \Exception("Failed to write transaction");
         }
+		fclose($f);
 		$file->touch(); // seems to help trigger syncing
     }
 
