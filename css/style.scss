@@ -25,6 +25,10 @@ table.hledger-report div {
 	padding-bottom: 1px;
 }
 
+table.hledger-report td:not(:first-child) div {
+	text-align: right;
+}
+
 table.hledger-report button {
 	min-height: 0;
 	padding-top: 1px;
@@ -40,9 +44,9 @@ div.hledger-add-transactions input.t-code {
 	width: 69px;
 }
 
-div.hledger-add-transactions input.t-description,
+div.hledger-add-transactions input.p-comment,
 div.hledger-add-transactions input.t-comment,
-div.hledger-add-transactions input.p-comment {
+div.hledger-add-transactions input.t-description {
 	width: 334px;
 }
 
@@ -51,7 +55,7 @@ div.hledger-add-transactions div#autosuggest {
 }
 
 div.hledger-add-transactions .autosuggest__results-item--highlighted {
-  background-color: rgba(51, 217, 178, 0.2);
+	background-color: rgba(51, 217, 178, 0.2);
 }
 
 div.hledger-add-transactions input.p-account {
