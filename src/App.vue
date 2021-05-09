@@ -78,7 +78,8 @@
 							</select>
 							<VueAutosuggest v-model="posting.account"
 								:suggestions="filterAccounts(posting.account)"
-								:input-props="{id:'p'+index+'_account', class:'p-account', placeholder:'account'}">
+								:input-props="{id:'p'+index+'__input', class:'p-account', placeholder:'account'}"
+								@selected="(suggestion) => accountSelected(index, suggestion.item)">
 								<template slot-scope="{suggestion}">
 									<span>{{ suggestion.item }}</span>
 								</template>
@@ -225,12 +226,15 @@ export default {
 				comment: '',
 			}
 		},
-		filterAccounts(x) {
+		filterAccounts(input) {
 			return [{
 				data: this.accounts.filter(account => {
-					return account.toLowerCase().includes(x.toLowerCase())
+					return input && account.toLowerCase().includes(input.toLowerCase())
 				}),
 			}]
+		},
+		accountSelected(posting, account) {
+			this.transaction.postings[posting].account = account
 		},
 		async getBudget() {
 			try {
