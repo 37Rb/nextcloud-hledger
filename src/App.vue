@@ -170,8 +170,8 @@ export default {
 				}
 				sum += parseFloat(posting.amount)
 			}
-			if (sum > 0.001) {
-				return 'Transaction does not balance: ' + sum
+			if (Math.abs(sum) > 0.001) {
+				return 'Transaction does not balance: ' + sum.toFixed(2)
 			}
 			return null
 		},
@@ -198,6 +198,7 @@ export default {
 		},
 		stopAddingTransactions() {
 			this.transaction.visible = false
+			this.reloadReport()
 		},
 		addPosting() {
 			this.transaction.postings.push(this.newPosting())
@@ -248,6 +249,17 @@ export default {
 		},
 		accountSelected(posting, account) {
 			this.transaction.postings[posting].account = account
+		},
+		reloadReport() {
+			if (this.report.name === 'budget') {
+				this.getBudget()
+			} else if (this.report.name === 'incomestatement') {
+				this.getIncomeStatement()
+			} else if (this.report.name === 'accountregister') {
+				this.getAccountRegister(this.report.args[0])
+			} else {
+				this.getBalanceSheet()
+			}
 		},
 		async getBudget() {
 			try {
