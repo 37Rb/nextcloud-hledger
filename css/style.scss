@@ -37,13 +37,12 @@ table.hledger-report button {
 
 .hl-transaction .modal-container {
 	min-width: 375px;
+	overflow-y: auto !important;
 }
 
 div.hledger-add-transactions {
 	min-height: 330px;
 	padding: 20px;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 .hlt-row {
