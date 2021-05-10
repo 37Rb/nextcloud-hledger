@@ -41,67 +41,80 @@
 			</table>
 		</AppContent>
 		<div>
-			<Modal v-if="transaction.visible" title="Add Transactions" @close="stopAddingTransactions">
+			<Modal v-if="transaction.visible"
+				class="hl-transaction"
+				title="Add Transactions"
+				@close="stopAddingTransactions">
 				<div class="hledger-add-transactions">
-					<DatetimePicker v-model="transaction.date" value-type="format" />
-					<select v-model="transaction.status">
-						<option value="" />
-						<option value="!">
-							!
-						</option>
-						<option value="*">
-							*
-						</option>
-					</select>
-					<input v-model="transaction.code"
-						type="text"
-						class="t-code"
-						placeholder="code"><br>
-					<input v-model="transaction.description"
-						type="text"
-						class="t-description"
-						placeholder="description">
-					<input v-model="transaction.comment"
-						type="text"
-						class="t-comment"
-						placeholder="comment"><br>
+					<div class="hlt-row">
+						<DatetimePicker v-model="transaction.date" value-type="format" />
+						<input v-model="transaction.code"
+							type="text"
+							class="t-code"
+							placeholder="code (transaction)">
+						<select v-model="transaction.status">
+							<option value="" />
+							<option value="!">
+								!
+							</option>
+							<option value="*">
+								*
+							</option>
+						</select>
+					</div>
+					<div class="hlt-row hlt-wrap">
+						<input v-model="transaction.description"
+							type="text"
+							class="t-description"
+							placeholder="description (transaction)">
+						<input v-model="transaction.comment"
+							type="text"
+							class="t-comment"
+							placeholder="comment (transaction)">
+					</div>
 					<ul class="postings">
 						<li v-for="(posting, index) in transaction.postings" :key="posting.id">
-							<select v-model="posting.status">
-								<option value="" />
-								<option value="!">
-									!
-								</option>
-								<option value="*">
-									*
-								</option>
-							</select>
-							<VueAutosuggest v-model="posting.account"
-								:suggestions="filterAccounts(posting.account)"
-								:input-props="{id:'p'+index+'__input', class:'p-account', placeholder:'account'}"
-								@selected="(suggestion) => accountSelected(index, suggestion.item)">
-								<template slot-scope="{suggestion}">
-									<span>{{ suggestion.item }}</span>
-								</template>
-							</VueAutosuggest>
-							<input v-model="posting.amount"
-								type="text"
-								class="p-amount"
-								placeholder="amount">
-							<input v-model="posting.comment"
-								type="text"
-								class="p-comment"
-								placeholder="comment">
-							<button v-if="index > 1" @click="removePosting(index)">
-								X
-							</button>
+							<div class="hlt-row hlt-wrap">
+								<div class="hlt-row p-left">
+									<VueAutosuggest v-model="posting.account"
+										:suggestions="filterAccounts(posting.account)"
+										:input-props="{id:'p'+index+'__input', class:'p-account', placeholder:'account'}"
+										@selected="(suggestion) => accountSelected(index, suggestion.item)">
+										<template slot-scope="{suggestion}">
+											<span>{{ suggestion.item }}</span>
+										</template>
+									</VueAutosuggest>
+									<input v-model="posting.amount"
+										type="text"
+										class="p-amount"
+										placeholder="amount">
+								</div>
+								<div class="hlt-row p-right">
+									<select v-model="posting.status">
+										<option value="" />
+										<option value="!">
+											!
+										</option>
+										<option value="*">
+											*
+										</option>
+									</select>
+									<input v-model="posting.comment"
+										type="text"
+										class="p-comment"
+										placeholder="comment (posting)">
+									<button v-if="index > 1" @click="removePosting(index)">
+										X
+									</button>
+								</div>
+							</div>
 						</li>
 					</ul>
 					<button @click="addPosting">
-						add posting
+						Add Posting
 					</button>
 					<button :disabled="transactionInvalid" @click="addTransaction">
-						add transaction
+						Save Transaction
 					</button>
 					<div class="t-validation">
 						{{ transactionInvalid }}
@@ -196,10 +209,10 @@ export default {
 			try {
 				await axios.post(this.apiUrl('transaction'), this.transaction)
 				const snippet = this.truncate((this.transaction.code + ' ' + this.transaction.description).trim(), 20)
-				showSuccess(t('hledger', 'Added ' + snippet))
+				showSuccess(t('hledger', 'Saved ' + snippet))
 				this.initializeTransaction(this)
 			} catch (e) {
-				showError(t('hledger', 'Error adding transaction: ' + e.message))
+				showError(t('hledger', 'Error saving transaction: ' + e.message))
 			}
 		},
 		initializeTransaction(state) {

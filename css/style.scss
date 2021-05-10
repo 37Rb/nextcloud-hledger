@@ -35,35 +35,69 @@ table.hledger-report button {
 	padding-bottom: 1px;
 }
 
+.hl-transaction .modal-container {
+	min-width: 375px;
+}
+
 div.hledger-add-transactions {
 	min-height: 330px;
 	padding: 20px;
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 
-div.hledger-add-transactions input.t-code {
-	width: 69px;
+.hlt-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
 }
 
-div.hledger-add-transactions input.p-comment,
-div.hledger-add-transactions input.t-comment,
-div.hledger-add-transactions input.t-description {
-	width: 334px;
+.hlt-wrap {
+	flex-wrap: wrap;
 }
 
-div.hledger-add-transactions div#autosuggest {
-	display: inline-block;
+.hlt-row input {
+	flex-grow: 0;
+}
+
+.hlt-row .t-code {
+	flex-grow: 1;
+	margin-left: 3px;
+}
+
+.hlt-row #autosuggest,
+.hlt-row .p-account,
+.hlt-row .p-left,
+.hlt-row .p-right {
+	flex-grow: 1;
+}
+
+.hlt-row .p-account,
+.hlt-row .p-comment,
+.hlt-row .t-comment,
+.hlt-row .t-description {
+	width: 100%;
+}
+
+.hlt-row .p-amount {
+	width: 75px;
+	margin-left: 3px;
+}
+@media (min-width: 1024px) {
+	.hlt-row .p-left,
+	.hlt-row .p-right,
+	.hlt-row .t-comment,
+	.hlt-row .t-description {
+		width: 50%;
+	}
+
+	.hlt-wrap {
+		flex-wrap: nowrap;
+	}
 }
 
 div.hledger-add-transactions .autosuggest__results-item--highlighted {
 	background-color: rgba(51, 217, 178, 0.2);
-}
-
-div.hledger-add-transactions input.p-account {
-	width: 200px;
-}
-
-div.hledger-add-transactions input.p-amount {
-	width: 75px;
 }
 
 div.hledger-add-transactions div.t-validation {
