@@ -65,7 +65,7 @@ class HLedger
             ['monthly'],
             ['market'],
             ['begin', 'thisyear'],
-            ['end', 'thismonth']
+            ['end', 'nextmonth']
         ]);
     }
 
