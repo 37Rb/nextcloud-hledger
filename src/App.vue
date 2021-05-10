@@ -2,10 +2,10 @@
 	<Content app-name="hledger">
 		<AppNavigation>
 			<template #list>
+				<AppNavigationItem title="Add Transactions" icon="icon-add" @click="startAddingTransactions" />
 				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
 				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
 				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
-				<AppNavigationItem title="Add Transactions" icon="icon-add" @click="startAddingTransactions" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
