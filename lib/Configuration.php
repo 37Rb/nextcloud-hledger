@@ -4,6 +4,7 @@ namespace OCA\HLedger;
 
 use OCP\IConfig;
 use OCP\Files\IRootFolder;
+use OCA\HLedger\HLedger;
 
 class Configuration
 {
@@ -82,7 +83,8 @@ class Configuration
         $hlFolder = $userFolder->get($hlFolderName);
         $journalFileName = $this->getSetting('journal_file');
         if (!$hlFolder->nodeExists($journalFileName)) {
-            $hlFolder->newFile($journalFileName);
+            $hledger = new HLedger($this);
+            $hlFolder->newFile($journalFileName, $hledger->createExampleJournal());
         }
         $budgetFileName = $this->getSetting('budget_file');
         if (!$hlFolder->nodeExists($budgetFileName)) {

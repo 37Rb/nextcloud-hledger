@@ -40,8 +40,8 @@ class HLedger
         if (fwrite($f, $s) != strlen($s)) {
             throw new \Exception("Failed to write transaction");
         }
-		fclose($f);
-		$file->touch(); // seems to help trigger syncing
+        fclose($f);
+        $file->touch(); // seems to help trigger syncing
     }
 
     public function accounts()
@@ -83,5 +83,62 @@ class HLedger
             ['file', $this->config->getOperatingSystemPath($this->config->getSetting('journal_file'))],
             ['file', $this->config->getOperatingSystemPath($this->config->getSetting('budget_file'))]
         ]);
+    }
+
+    public function createExampleJournal()
+    {
+        $hledger = $this->createHLedger();
+        $s = '; Example HLedger journal file.' . PHP_EOL;
+
+        $s .= PHP_EOL . $hledger->makeTransaction([
+            'date' => new \DateTime(),
+            'description' => 'Opening Balances',
+            'postings' => [
+                [
+                    'account' => 'assets:Checking',
+                    'amount' => '5000.00'
+                ],
+                [
+                    'account' => 'assets:Cash',
+                    'amount' => '200.00'
+                ],
+                [
+                    'account' => 'equity:Opening Balances',
+                    'amount' => '-5200.00'
+                ]
+            ]
+        ]) . PHP_EOL;
+
+        $s .= PHP_EOL . $hledger->makeTransaction([
+            'date' => new \DateTime(),
+            'description' => 'Got paid',
+            'postings' => [
+                [
+                    'account' => 'assets:Checking',
+                    'amount' => '2000.00'
+                ],
+                [
+                    'account' => 'income:My Job',
+                    'amount' => '-2000.00'
+                ]
+            ]
+        ]) . PHP_EOL;
+
+        $s .= PHP_EOL . $hledger->makeTransaction([
+            'date' => new \DateTime(),
+            'description' => 'Fill up gas tank',
+            'postings' => [
+                [
+                    'account' => 'expenses:Gas',
+                    'amount' => '39.50'
+                ],
+                [
+                    'account' => 'liabilities:Credit Card',
+                    'amount' => '-39.50'
+                ]
+            ]
+        ]) . PHP_EOL;
+
+        return $s;
     }
 }
