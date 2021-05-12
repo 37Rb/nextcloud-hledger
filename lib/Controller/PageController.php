@@ -41,6 +41,7 @@ class PageController extends Controller
      */
     public function index()
     {
+        $this->config->createMissingFiles();
         $parameters = ['settings' => $this->config->getSettings()];
 
         $hledger = new HLedger($this->config);

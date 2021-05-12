@@ -24,6 +24,9 @@ class ConfigurationApiController extends ApiController
         $this->config = new Configuration($AppName, $UserId, $config, $rootFolder);
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function saveSettings($settings)
     {
         $this->config->saveSettings($this->request->getParams());

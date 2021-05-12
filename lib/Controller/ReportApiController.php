@@ -27,21 +27,33 @@ class ReportApiController extends ApiController
         $this->hledger = new HLedger($this->config);
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function budgetReport()
     {
         return new DataResponse($this->hledger->budgetReport());
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function incomeStatement()
     {
         return new DataResponse($this->hledger->incomeStatement());
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function balanceSheet()
     {
         return new DataResponse($this->hledger->balanceSheet());
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function accountRegister()
     {
         $account = $this->request->getParam('account');

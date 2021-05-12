@@ -71,4 +71,22 @@ class Configuration
         $filePath = $this->rootFolder->getFullPath($this->getSetting('hledger_folder') . '/' . $file);
         return realpath($userFiles . $filePath);
     }
+
+    public function createMissingFiles()
+    {
+        $userFolder = $this->rootFolder->getUserFolder($this->userId);
+        $hlFolderName = $this->getSetting('hledger_folder');
+        if (!$userFolder->nodeExists($hlFolderName)) {
+            $userFolder->newFolder($hlFolderName);
+        }
+        $hlFolder = $userFolder->get($hlFolderName);
+        $journalFileName = $this->getSetting('journal_file');
+        if (!$hlFolder->nodeExists($journalFileName)) {
+            $hlFolder->newFile($journalFileName);
+        }
+        $budgetFileName = $this->getSetting('budget_file');
+        if (!$hlFolder->nodeExists($budgetFileName)) {
+            $hlFolder->newFile($budgetFileName);
+        }
+    }
 }

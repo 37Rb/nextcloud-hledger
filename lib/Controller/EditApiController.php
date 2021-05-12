@@ -27,6 +27,9 @@ class EditApiController extends ApiController
         $this->hledger = new HLedger($this->config);
     }
 
+    /**
+     * @NoAdminRequired
+     */
     public function addTransaction($settings)
     {
         $file = $this->config->getJournalFile();
