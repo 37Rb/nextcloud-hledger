@@ -314,7 +314,7 @@ export default {
 
 			let attempts = 0
 			const interval = setInterval(function() {
-				const found = self.findEditorTextNode()
+				const found = self.findEditorElements()
 				if (!found) {
 					attempts++
 					if (attempts === 30) {
@@ -325,10 +325,10 @@ export default {
 				}
 
 				clearInterval(interval)
-				self.goToTransaction(found.editor, found.textnode, row[0], row[2])
+				self.goToTransaction(found.editor, found.code, row[0], row[2])
 			}, 1000)
 		},
-		findEditorTextNode() {
+		findEditorElements() {
 			const jqeditor = window.jQuery('#editor')
 			if (jqeditor.length === 0) {
 				return null
@@ -339,26 +339,46 @@ export default {
 			}
 			return {
 				editor: jqeditor.get(0),
-				textnode: jqcode.get(0),
+				code: jqcode.get(0),
 			}
 		},
-		goToTransaction(editor, textnode, date, description) {
+		goToTransaction(editor, code, date, description) {
+			const textnode = this.findTextNodeInElement(code)
+			if (!textnode) {
+				showError(t('hledger', 'Selecting transaction, can\'t find text node in editor.'))
+				return
+			}
+
 			const pattern = '^.*' + this.regexEscape(date) + '.+' + this.regexEscape(description) + '.*$'
-			const match = (new RegExp(pattern, 'gm')).exec(textnode.innerText)
+			const match = (new RegExp(pattern, 'gm')).exec(textnode.wholeText)
 			if (!match) {
 				showError(t('hledger', 'No transaction with ' + date + ' and ' + description))
 				return
 			}
 
 			const range = document.createRange()
-			range.setStart(textnode.firstChild, match.index)
-			range.setEnd(textnode.firstChild, match.index + match[0].length)
+			range.setStart(textnode, match.index)
+			range.setEnd(textnode, match.index + match[0].length)
 
 			const selection = window.getSelection()
 			selection.removeAllRanges()
 			selection.addRange(range)
 
-			editor.scroll(0, range.getBoundingClientRect().top - textnode.getBoundingClientRect().top)
+			editor.scroll(0, range.getBoundingClientRect().top - code.getBoundingClientRect().top)
+		},
+		findTextNodeInElement(element) {
+			for (let i = 0; i < element.childNodes.length; i++) {
+				const child = element.childNodes[i]
+				if (child.nodeType === Node.TEXT_NODE) {
+					return child
+				} else if (child.nodeType === Node.ELEMENT_NODE) {
+					const found = this.findTextNodeInElement(child)
+					if (found) {
+						return found
+					}
+				}
+			}
+			return null
 		},
 		regexEscape(x) {
 			return x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
