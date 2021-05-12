@@ -16,6 +16,16 @@ As a file storage system with desktop sync and mobile access, Nextcloud is a nat
 ![Balance Sheet](screenshots/BS.png "Balance Sheet")
 ![Files](screenshots/Files.png "Files")
 
+## Demo Site
+
+Want to see it in action without setting up Nextcloud? Create a free account on the demo site.
+
+[https://demo.hledger.cloud](https://demo.hledger.cloud/)
+
+**Warning:** The demo site is only for demonstration. You may not use it for your own accounting. There is no privacy or security on the demo site, either explicit or implied. You can and will lose your files at any time. Do not enter your private financial information on the demo site.
+
+Do try it and [provide feedback](https://github.com/37Rb/nextcloud-hledger/issues)!!!
+
 ## Requirements
 
 This app uses [shell_exec](https://www.php.net/manual/en/function.shell-exec.php) and therefore shell_exec must be enabled in your server.
