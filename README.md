@@ -10,6 +10,14 @@ Rather than storing financial data in a rigid or proprietary database, you can j
 
 As a file storage system with desktop sync and mobile access, Nextcloud is a natural fit for plain text accounting. It provides a safe, private, easily accessible place to store your financial data. It provides security, online editing, multi-user, collaboration, desktop sync and mobile device access without compromising privacy or forcing you to trust a company as you must do with tools like Quicken, Mint, YNAB, etc...
 
+## Features
+
+* Share and collaborate with other users
+* Add/edit transactions through the web
+* Multiple currencies including stocks and cryptocurrency
+* Budgeting and forecasting
+* Version control (Git) friendly
+
 ## Screenshots
 
 ![Income Statement](screenshots/IS.png "Income Statement")
