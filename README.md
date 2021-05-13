@@ -24,7 +24,7 @@ Want to see it in action without setting up Nextcloud? Create a free account on 
 
 **Warning:** The demo site is only for demonstration. You may not use it for your own accounting. There is no privacy or security on the demo site, either explicit or implied. You can and will lose your files at any time. Do not enter your private financial information on the demo site.
 
-Do try it and [provide feedback](https://github.com/37Rb/nextcloud-hledger/issues)!!!
+Do try it and provide feedback on [Nextcloud](https://help.nextcloud.com/c/apps/26) and [Github](https://github.com/37Rb/nextcloud-hledger/issues)!!!
 
 ## Requirements
 
