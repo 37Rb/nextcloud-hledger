@@ -211,9 +211,18 @@ export default {
 				await axios.post(this.apiUrl('transaction'), this.transaction)
 				const snippet = this.truncate((this.transaction.code + ' ' + this.transaction.description).trim(), 20)
 				showSuccess(t('hledger', 'Saved ' + snippet))
+				this.updateNewAccounts(this)
 				this.initializeTransaction(this)
 			} catch (e) {
 				showError(t('hledger', 'Error saving transaction: ' + e.message))
+			}
+		},
+		updateNewAccounts(state) {
+			for (let i = 0; i < state.transaction.postings.length; i++) {
+				const posting = state.transaction.postings[i]
+				if (!state.accounts.includes(posting.account)) {
+					state.accounts.push(posting.account)
+				}
 			}
 		},
 		initializeTransaction(state) {

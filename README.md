@@ -61,6 +61,6 @@ $ npm run-script build
 If you have questions or would like to participate, let's talk!
 
 * [Github issues](https://github.com/37Rb/nextcloud-hledger/issues)
-* [Nextcloud user questions](https://help.nextcloud.com/c/apps/26)
-* [Nextcloud dev questions](https://help.nextcloud.com/c/dev/app-dev/24)
+* [Nextcloud user help](https://help.nextcloud.com/c/apps/26)
+* [Nextcloud dev help](https://help.nextcloud.com/c/dev/app-dev/24)
 * [HLedger mailing list](https://groups.google.com/g/hledger)
