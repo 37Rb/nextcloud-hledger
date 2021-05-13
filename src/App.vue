@@ -160,17 +160,23 @@ export default {
 				return 'Transaction code or description required'
 			}
 			let sum = 0
+			const units = []
 			for (let i = 0; i < this.transaction.postings.length; i++) {
 				const posting = this.transaction.postings[i]
 				if (!posting.account) {
 					return 'Posting ' + (i + 1) + ' account required'
 				}
-				if (!posting.amount || isNaN(posting.amount)) {
+				const amount = posting.amount.split(/\s+/)
+				if (!posting.amount || isNaN(amount[0])) {
 					return 'Posting ' + (i + 1) + ' numeric amount required'
 				}
-				sum += parseFloat(posting.amount)
+				sum += parseFloat(amount[0])
+				const unit = (amount.length > 1) ? amount[1] : ''
+				if (!units.includes(unit)) {
+					units.push(unit)
+				}
 			}
-			if (Math.abs(sum) > 0.001) {
+			if (units.length < 2 && Math.abs(sum) > 0.001) {
 				return 'Transaction does not balance: ' + sum.toFixed(2)
 			}
 			return null
