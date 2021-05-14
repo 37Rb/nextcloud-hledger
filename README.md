@@ -1,6 +1,6 @@
 # HLedger Plain Text Accounting on Nextcloud
 
-[HLedger](https://hledger.org/) is cross-platform accounting software for both power users and folks new to accounting. It's good for tracking money, time, investments, cryptocurrencies, inventory and more.
+[HLedger](https://hledger.org/) is cross-platform accounting software for both power users and folks new to accounting. It's good for tracking money, time, investments, cryptocurrencies, inventory and more. The FAQ covers [what](https://hledger.org/faq.html#what-can-hledger-do-for-me-) and [why](https://hledger.org/faq.html#how-could-that-help-me-).
 
 [Plain Text Accounting](https://plaintextaccounting.org/) means doing accounting with plain text data formats and scriptable software.
 
