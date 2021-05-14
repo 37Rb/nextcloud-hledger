@@ -12,11 +12,13 @@ As a file storage system with desktop sync and mobile access, Nextcloud is a nat
 
 ## Features
 
-* Share and collaborate with other users
 * Add/edit transactions through the web
-* Multiple currencies including stocks and cryptocurrency
-* Budgeting and forecasting
-* Version control (Git) friendly
+* [Sharing](https://docs.nextcloud.com/server/latest/user_manual/en/files/sharing.html) and [collaborative editing](https://github.com/nextcloud/text#readme)
+* [Multiple currencies](https://hledger.org/multicurrency-tutorial.html) including [stocks and cryptocurrency](https://hledger.org/investments.html)
+* [Budgeting and forecasting](https://hledger.org/budgeting.html)
+* [Version control included in Nextcloud](https://docs.nextcloud.com/server/latest/user_manual/en/files/version_control.html), [Git compatible](https://hledger.org/track-changes-with-version-control.html)
+* [Desktop and mobile sync](https://docs.nextcloud.com/server/latest/user_manual/en/files/desktop_mobile_sync.html)
+* Everything needed for [double entry accounting](https://hledger.org/accounting.html)
 
 ## Screenshots
 
