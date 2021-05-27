@@ -113,6 +113,9 @@
 					<button @click="addPosting">
 						Add Posting
 					</button>
+					<button :disabled="cantBalanceTransaction" @click="balanceTransaction">
+						Balance
+					</button>
 					<button :disabled="transactionInvalid" @click="addTransaction">
 						Save Transaction
 					</button>
@@ -166,11 +169,11 @@ export default {
 				if (!posting.account) {
 					return 'Posting ' + (i + 1) + ' account required'
 				}
-				const amount = posting.amount.split(/\s+/)
-				if (!posting.amount || isNaN(amount[0])) {
+				const amount = this.parseAmount(posting.amount)
+				if (!amount) {
 					return 'Posting ' + (i + 1) + ' numeric amount required'
 				}
-				sum += parseFloat(amount[0])
+				sum += amount[0]
 				const unit = (amount.length > 1) ? amount[1] : ''
 				if (!units.includes(unit)) {
 					units.push(unit)
@@ -180,6 +183,25 @@ export default {
 				return 'Transaction does not balance: ' + sum.toFixed(2)
 			}
 			return null
+		},
+		cantBalanceTransaction() {
+			let amountsEntered = 0
+			let amountsBlank = 0
+			const units = []
+			for (let i = 0; i < this.transaction.postings.length; i++) {
+				const posting = this.transaction.postings[i]
+				const amount = this.parseAmount(posting.amount)
+				if (posting.amount.trim() === '') {
+					amountsBlank++
+				} else if (amount) {
+					amountsEntered++
+					const unit = amount.length > 1 ? amount[1] : ''
+					if (!units.includes(unit)) {
+						units.push(unit)
+					}
+				}
+			}
+			return (units.length > 1) || (amountsBlank !== 1) || (amountsEntered !== this.transaction.postings.length - 1)
 		},
 	},
 	methods: {
@@ -211,6 +233,33 @@ export default {
 		},
 		removePosting(index) {
 			this.transaction.postings.splice(index, 1)
+		},
+		parseAmount(entered) {
+			const split = entered.trim().split(/\s+/)
+			if (!entered || isNaN(split[0])) {
+				return null
+			}
+			const parsed = [parseFloat(split[0])]
+			if (split.length > 1) {
+				parsed.push(split[1])
+			}
+			return parsed
+		},
+		balanceTransaction() {
+			let sum = 0
+			let emptyAmountIndex = null
+			for (let i = 0; i < this.transaction.postings.length; i++) {
+				const posting = this.transaction.postings[i]
+				const amount = this.parseAmount(posting.amount)
+				if (posting.amount.trim() === '') {
+					emptyAmountIndex = i
+				} else if (amount) {
+					sum += amount[0]
+				}
+			}
+			if (emptyAmountIndex !== null) {
+				this.transaction.postings[emptyAmountIndex].amount = (-sum).toFixed(2)
+			}
 		},
 		async addTransaction() {
 			try {
