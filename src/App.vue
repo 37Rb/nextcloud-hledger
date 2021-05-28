@@ -361,9 +361,15 @@ export default {
 				})
 				this.report.name = 'accountregister'
 				this.report.args = [account]
+				const self = this
+				setTimeout(function() { self.scrollToBottom('html') }, 37)
 			} catch (e) {
 				showError(t('hledger', 'Error getting account ' + account + ' register: ' + e.message))
 			}
+		},
+		scrollToBottom(selector) {
+			const main = window.jQuery(selector)
+			main.scrollTop(main.prop('scrollHeight'))
 		},
 		editTransaction(row) {
 			const self = this
