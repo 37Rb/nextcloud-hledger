@@ -45,6 +45,11 @@ class PageController extends Controller
         $parameters = ['settings' => $this->config->getSettings()];
 
         $hledger = new HLedger($this->config);
+        $parameters['navigation'] = [ 'reports' => [
+            ['name' => 'balancesheet', 'title' => 'Balance Sheet', 'icon' => 'icon-edit'],
+            ['name' => 'incomestatement', 'title' => 'Income Statement', 'icon' => 'icon-clippy'],
+            ['name' => 'budgetreport', 'title' => 'Budget', 'icon' => 'icon-toggle-filelist']
+        ]];
         $parameters['report'] = [
             'name' => 'balancesheet',
             'data' => $hledger->balanceSheet(),

@@ -3,9 +3,11 @@
 		<AppNavigation>
 			<template #list>
 				<AppNavigationItem title="Add Transactions" icon="icon-add" @click="startAddingTransactions" />
-				<AppNavigationItem title="Balance Sheet" icon="icon-edit" @click="getBalanceSheet" />
-				<AppNavigationItem title="Income Statement" icon="icon-clippy" @click="getIncomeStatement" />
-				<AppNavigationItem title="Budget" icon="icon-toggle-filelist" @click="getBudget" />
+				<AppNavigationItem v-for="item in navigation.reports"
+					:key="item.id"
+					:title="item.title"
+					:icon="item.icon"
+					@click="getReport(item.name)" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -315,41 +317,21 @@ export default {
 			this.transaction.postings[posting].account = account
 		},
 		reloadReport() {
-			if (this.report.name === 'budget') {
-				this.getBudget()
-			} else if (this.report.name === 'incomestatement') {
-				this.getIncomeStatement()
-			} else if (this.report.name === 'accountregister') {
+			if (this.report.name === 'accountregister') {
 				this.getAccountRegister(this.report.args[0])
+			} else if (this.report.name) {
+				this.getReport(this.report.name)
 			} else {
-				this.getBalanceSheet()
+				this.getReport('balancesheet')
 			}
 		},
-		async getBudget() {
+		async getReport(report) {
 			try {
-				this.report.data = (await axios.get(this.apiUrl('budgetreport'))).data
-				this.report.name = 'budget'
+				this.report.data = (await axios.get(this.apiUrl(report))).data
+				this.report.name = report
 				this.report.args = []
 			} catch (e) {
-				showError(t('hledger', 'Error getting budget report: ' + e.message))
-			}
-		},
-		async getIncomeStatement() {
-			try {
-				this.report.data = (await axios.get(this.apiUrl('incomestatement'))).data
-				this.report.name = 'incomestatement'
-				this.report.args = []
-			} catch (e) {
-				showError(t('hledger', 'Error getting income statement: ' + e.message))
-			}
-		},
-		async getBalanceSheet() {
-			try {
-				this.report.data = (await axios.get(this.apiUrl('balancesheet'))).data
-				this.report.name = 'balancesheet'
-				this.report.args = []
-			} catch (e) {
-				showError(t('hledger', 'Error getting balance sheet: ' + e.message))
+				showError(t('hledger', 'Error getting ' + report + ': ' + e.message))
 			}
 		},
 		async getAccountRegister(account) {
