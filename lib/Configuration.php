@@ -59,11 +59,47 @@ class Configuration
         $this->config->setAppValue($this->appName, $key, $value);
     }
 
-    public function getJournalFile()
+    public function getHledgerFolder()
     {
         $userFolder = $this->rootFolder->getUserFolder($this->userId);
         $hledgerFolder = $userFolder->get($this->getSetting('hledger_folder'));
-        return $hledgerFolder->get($this->getSetting('journal_file'));
+        return $hledgerFolder;
+    }
+
+    public function getJournalFile($fileName = null)
+    {
+        $hledgerFolder = $this->getHledgerFolder();
+        if ($fileName === null)
+        {
+            return $hledgerFolder->get($this->getSetting('journal_file'));
+        }
+        else
+        {
+            $fileList = $this->getListOfJournalFiles();
+            if (in_array($fileName, $fileList))
+            {
+                return $hledgerFolder->get($fileName);
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+    public function getListOfJournalFiles()
+    {
+        $hledgerFolder = $this->getHledgerFolder();
+        $listing = $hledgerFolder->getDirectoryListing();
+        $fileList = [];
+        foreach ($listing as $file) {
+            $fileName = $file->getName();
+            if (str_ends_with($fileName, ".txt") || str_ends_with($fileName, ".journal") || str_ends_with($fileName, ".ledger"))
+            {
+                $fileList[] = $fileName;
+            }
+        }
+        return $fileList;
     }
 
     public function getOperatingSystemPath($file)

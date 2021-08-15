@@ -55,6 +55,10 @@ class PageController extends Controller
             'data' => $hledger->balanceSheet(),
             'args' => []
         ];
+        $parameters['editor'] = [
+            'availableledgers' => $this->config->getListOfJournalFiles(),
+            'selectedledger' => $this->config->getJournalFile()->getName()
+        ];
         $parameters['accounts'] = $hledger->accounts();
 
         $this->initialState->provideInitialState($this->appName, 'state', $parameters);

@@ -13,5 +13,7 @@ return [
 	   ['name' => 'report_api#budget_report', 'url' => '/api/1/budgetreport', 'verb' => 'GET'],
 	   ['name' => 'report_api#account_register', 'url' => '/api/1/accountregister', 'verb' => 'GET'],
 	   ['name' => 'edit_api#add_transaction', 'url' => '/api/1/transaction', 'verb' => 'POST'],
+	   ['name' => 'edit_api#load_ledger_contents', 'url' => '/api/1/loadledgercontents', 'verb' => 'GET'],
+	   ['name' => 'edit_api#save_ledger_contents', 'url' => '/api/1/saveledgercontents', 'verb' => 'POST'],
     ]
 ];

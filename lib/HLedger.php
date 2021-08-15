@@ -44,6 +44,16 @@ class HLedger
         $file->touch(); // seems to help trigger syncing
     }
 
+    public function getLedgerContents($file)
+    {
+        return $file->getContent();
+    }
+
+    public function putLedgerContents($file, $contents)
+    {
+        return $file->putContent($contents);
+    }
+
     public function accounts()
     {
         return $this->createHLedger()->accounts();
