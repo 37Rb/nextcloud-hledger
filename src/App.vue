@@ -175,16 +175,19 @@
 							</tr>
 						</table>
 						<div v-if="editor.editorOpen">
-							<LedgerBlock v-for="lblock in filteredLedger"
-								class="ignorenextcloud"
-								v-bind:key="lblock.id"
-								v-bind:lblock="lblock"
-								v-bind:accounts="editor.accounts"
-								v-bind:alwaysshowcomments="editor.alwaysshowcomments"
-								v-bind:onlyenable="editor.onlyenable"
-								v-bind:showcodeinsteadofstatus="editor.showcodeinsteadofstatus"
-								@change="ledgerBlockChanged"
-								@delete-transaction="deleteTransaction(lblock.id)"></LedgerBlock>
+							<div v-for="lblock in filteredLedger" v-bind:key="lblock.id">
+								<v-lazy min-height="85" v-if="(lblock.type === 'other' && lblock.text !== '') || lblock.type !== 'other'">
+									<LedgerBlock
+										class="ignorenextcloud"
+										v-bind:lblock="lblock"
+										v-bind:accounts="editor.accounts"
+										v-bind:alwaysshowcomments="editor.alwaysshowcomments"
+										v-bind:onlyenable="editor.onlyenable"
+										v-bind:showcodeinsteadofstatus="editor.showcodeinsteadofstatus"
+										@change="ledgerBlockChanged"
+										@delete-transaction="deleteTransaction(lblock.id)"></LedgerBlock>
+								</v-lazy>
+							</div>
 						</div>
 					</v-container>
 				</v-main>

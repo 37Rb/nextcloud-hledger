@@ -1,5 +1,5 @@
 <template>
-	<v-card class="my-2 py-1 pl-1 pr-n2" v-if="(lblockobj.type === 'other' && lblockobj.text !== '') || lblockobj.type !== 'other'">
+	<v-card class="my-2 py-1 pl-1 pr-n2">
 		<v-row no-gutters>
 			<v-col>
 				<v-container :class="$vuetify.breakpoint.name === 'xs' ? 'pa-1' : 'pa-2'">
