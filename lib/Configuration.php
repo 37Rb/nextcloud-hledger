@@ -109,6 +109,13 @@ class Configuration
         return realpath($userFiles . $filePath);
     }
 
+    public function getOperatingSystemPathForData()
+    {
+        $userFiles = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
+        $filePath = $this->rootFolder->getFullPath($this->getSetting('hledger_folder'));
+        return realpath($userFiles . $filePath);
+    }
+
     public function createMissingFiles()
     {
         $userFolder = $this->rootFolder->getUserFolder($this->userId);

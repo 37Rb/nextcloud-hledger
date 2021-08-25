@@ -7,7 +7,7 @@
 					:key="item.id"
 					:title="item.title"
 					:icon="item.icon"
-					@click="getReport(item.name)" />
+					@click="getReport(item.name, item)" />
 				<AppNavigationItem title="Edit Ledger" icon="icon-template-add" @click="openEditor()" />
 			</template>
 			<template #footer>
@@ -164,7 +164,7 @@
 						<table v-if="!editor.editorOpen" class="hledger-report">
 							<tr v-for="row in report.data" :key="row.id">
 								<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
-									<a v-if="isSubAccount(cell)" href="#" @click="getAccountRegister(cell)">{{ cell }}</a>
+									<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell })">{{ cell }}</a>
 									<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
 										edit
 									</button>
@@ -521,20 +521,37 @@ export default {
 			this.transaction.postings[posting].account = account
 		},
 		reloadReport() {
-			if (this.report.name === 'accountregister') {
-				this.getAccountRegister(this.report.args[0])
-			} else if (this.report.name) {
-				this.getReport(this.report.name)
+			if (this.report.name) {
+				this.getReport(this.report.name, this.report.options)
 			} else {
 				this.getReport('balancesheet')
 			}
 		},
-		async getReport(report) {
+		async getReport(report, options) {
 			try {
-				this.report.data = (await axios.get(this.apiUrl(report))).data
+				const getOptions = { params: { } }
+				if (options.customName !== undefined) {
+					getOptions.params.reportName = options.customName
+				}
+				if (options.includesFiles !== undefined && !options.includesFiles) {
+					getOptions.params.includeDefaultFiles = true
+				}
+				if (options.account !== undefined) {
+					getOptions.params.account = options.account
+				}
+				this.report.data = (await axios.get(this.apiUrl(report), getOptions)).data
 				this.report.name = report
-				this.report.args = []
 				this.editor.editorOpen = false
+				this.report.options = options
+
+				/* For register-style reports, add "edit" button and scroll to bottom */
+				if (this.report.data.length > 0 && this.report.data[0][0].trim() === 'date' && this.report.data[0][2].trim() === 'description') {
+					this.report.data = this.report.data.map(function(row) {
+						return row.concat([row[0].trim() === 'date' ? '' : 'edit'])
+					})
+					const self = this
+					setTimeout(function() { self.scrollToBottom('html') }, 37)
+				}
 			} catch (e) {
 				showError(t('hledger', 'Error getting ' + report + ': ' + e.message))
 			}
@@ -576,21 +593,6 @@ export default {
 				this.editor.ledgersaving = false
 			}
 		},
-		async getAccountRegister(account) {
-			try {
-				const options = { params: { account } }
-				const report = (await axios.get(this.apiUrl('accountregister'), options)).data
-				this.report.data = report.map(function(row) {
-					return row.concat([row[0].trim() === 'date' ? '' : 'edit'])
-				})
-				this.report.name = 'accountregister'
-				this.report.args = [account]
-				const self = this
-				setTimeout(function() { self.scrollToBottom('html') }, 37)
-			} catch (e) {
-				showError(t('hledger', 'Error getting account ' + account + ' register: ' + e.message))
-			}
-		},
 		scrollToBottom(selector) {
 			const main = window.jQuery(selector)
 			main.scrollTop(main.prop('scrollHeight'))
@@ -602,7 +604,7 @@ export default {
 				path: journalPath,
 				async onClose() {
 					showSuccess(t('hledger', 'HLedger journal saved'))
-					self.getAccountRegister(self.report.args[0])
+					self.reloadReport()
 				},
 			})
 
