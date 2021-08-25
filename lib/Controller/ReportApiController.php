@@ -9,6 +9,7 @@ use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http\DataResponse;
 use OCA\HLedger\Configuration;
 use OCA\HLedger\HLedger;
+use OC\ForbiddenException;
 
 class ReportApiController extends ApiController
 {
@@ -58,5 +59,25 @@ class ReportApiController extends ApiController
     {
         $account = $this->request->getParam('account');
         return new DataResponse($this->hledger->accountRegister($account));
+    }
+
+    /**
+     * @NoAdminRequired
+     */
+    public function customReport()
+    {
+        $reportName = $this->request->getParam('reportName');
+        $includeDefaultFiles = $this->request->getParam('includeDefaultFiles');
+        $response = $this->hledger->customReport($reportName, $includeDefaultFiles);
+
+        /* customReport will return null if this custom report does not exist */
+        if ($response !== null)
+        {
+            return new DataResponse($response);
+        }
+        else
+        {
+            throw new ForbiddenException("Not Allowed!");
+        }
     }
 }
