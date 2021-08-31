@@ -17,7 +17,7 @@ const fromLedger = function(ledger, normalize = true) {
 				status: ((txnRegexResult[3] ? txnRegexResult[3] : '')
 								+ (normalize ? ' ' : (txnRegexResult[4] ? txnRegexResult[4] : ''))
 								+ (txnRegexResult[5] ? txnRegexResult[5] : '')).trim(),
-				code: (txnRegexResult[7] ? txnRegexResult[7] : ''),
+				code: (txnRegexResult[7] ? txnRegexResult[7].substring(1, txnRegexResult[7].length - 1) : ''),
 				description: (txnRegexResult[9] ? txnRegexResult[9] : ''),
 				comment: (txnRegexResult[11] ? txnRegexResult[11] : ''),
 				lines: [],
