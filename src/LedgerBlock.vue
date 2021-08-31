@@ -38,7 +38,7 @@
 										hide-details="auto"
 										filled
 										v-model="lblockobj.status"
-										:items="['', '!', '*']"
+										:items="['', '!', '*', '! *']"
 										label="Status"
 										@change="flushTransactionData"
 										:disabled="onlyenable.length > 0 && !onlyenable.includes('Status')"></v-select>

@@ -1,9 +1,9 @@
-const fromLedger = function(ledger) {
+const fromLedger = function(ledger, normalize = true) {
 	const blocks = []
 	const transactionIndexes = []
 	const lines = ledger.split(/\r?\n/)
 	const accountList = {}
-	const txnRegex = /^([0-9]+[-\\/][0-9]+[-\\/][0-9]+)( (!|\*)?( )?(\(.*\) )?([^;]*))?(;(.*)?)?$/
+	const txnRegex = /^([0-9]+[-\\/][0-9]+[-\\/][0-9]+)( (!|\*)?( )?(!|\*)?( )?(\(.*\))?( )?([^;]*))?(;(.*)?)?$/
 	for (let i = 0; i < lines.length; i++) {
 		const txnRegexResult = txnRegex.exec(lines[i])
 
@@ -14,13 +14,19 @@ const fromLedger = function(ledger) {
 			blocks.push({
 				type: 'transaction',
 				date: thisDate,
-				status: (txnRegexResult[3] ? txnRegexResult[3] : ''),
-				code: (txnRegexResult[5] ? txnRegexResult[5].substring(1, txnRegexResult[5].length - 2) : ''),
-				description: (txnRegexResult[6] ? txnRegexResult[6] : ''),
-				comment: (txnRegexResult[8] ? txnRegexResult[8] : ''),
+				status: ((txnRegexResult[3] ? txnRegexResult[3] : '')
+								+ (normalize ? ' ' : (txnRegexResult[4] ? txnRegexResult[4] : ''))
+								+ (txnRegexResult[5] ? txnRegexResult[5] : '')).trim(),
+				code: (txnRegexResult[7] ? txnRegexResult[7] : ''),
+				description: (txnRegexResult[9] ? txnRegexResult[9] : ''),
+				comment: (txnRegexResult[11] ? txnRegexResult[11] : ''),
 				lines: [],
 				postingIndexes: []
 			})
+			/* Normalize the order of the status */
+			if (normalize && blocks[blocks.length - 1].status === '* !') {
+				blocks[blocks.length - 1].status = '! *'
+			}
 			// Save a list of blocks which are transactions for ease of processing
 			transactionIndexes.push(blocks.length - 1)
 		// Test to see if this line is indented, which means it can be nested within a previously created block

@@ -562,12 +562,13 @@ export default {
 			this.editor.ledgerloading = true
 			try {
 				const loadedTextLedger = (await axios.get(this.apiUrl('loadledgercontents'), { params: { fileName: this.editor.selectedledger } })).data
-				const loadedLedger = fromLedger(loadedTextLedger)
-				const backConvertedLedger = toLedger(loadedLedger).replace(/\s+/g, ' ')
+				const nonNormalizedLoadedLedger = fromLedger(loadedTextLedger, false)
+				const backConvertedLedger = toLedger(nonNormalizedLoadedLedger).replace(/\s+/g, ' ')
 				const strippedLoadedTextLedger = loadedTextLedger.replace(/\s+/g, ' ')
 				if (backConvertedLedger !== strippedLoadedTextLedger) {
 					showError(t('hledger', 'Error: Ledger did not backconvert to the same ledger text. This means that there is something in the ledger file that this editor does not support'))
 				} else {
+					const loadedLedger = fromLedger(loadedTextLedger)
 					for (let i = 0; i < loadedLedger.blocks.length; i++) {
 						loadedLedger.blocks[i].id = i
 					}
