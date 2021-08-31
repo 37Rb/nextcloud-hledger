@@ -915,6 +915,7 @@ export default {
 }
 </script>
 <style>
+	/* Most of these rules fix nextcloud interfering with vuetify */
 	.ignorenextcloud input, .ignorenextcloud textarea, .ignorenextcloud input:disabled, .ignorenextcloud textarea:disabled {
 		border: inherit;
 		background-color: inherit;
@@ -948,5 +949,14 @@ export default {
 
 	.ignorenextcloud tbody tr:hover, .ignorenextcloud tbody tr:focus, .ignorenextcloud tbody tr:active {
 		background-color: inherit;
+	}
+
+	/* These two rules fix vuetify interfering with nextcloud */
+	*, :after, :before {
+		box-sizing: revert;
+	}
+
+	.ignorenextcloud *, .ignorenextcloud :after, .ignorenextcloud :before {
+		box-sizing: inherit;
 	}
 </style>
