@@ -64,9 +64,9 @@
 								hide-details="auto"
 								class="pt-0"
 								label="Show most recent"
-								v-model="editor.showrecentn"
+								v-model="editor.filter.showRecentN"
 								:items="[50, 100, 500, 1000]"></v-select>
-							<v-combobox v-model="editor.searchfirstaccount"
+							<v-combobox v-model="editor.filter.searchFirstAccount"
 								:items="editor.accounts"
 								label="Filter by First Account"
 								hide-details="auto"
@@ -77,12 +77,12 @@
 										style="max-width: 160px"
 										label="Search Type"
 										hide-details="auto"
-										v-model="editor.searchtype"
+										v-model="editor.filter.searchType"
 										:items="['All Fields', 'Date', 'Status', 'Code', 'Description', 'Comment', 'Amount', 'Any Account', 'First Account', 'Second Account']">
 									</v-select>
 								</v-col>
 								<v-col col="3">
-									<v-btn-toggle v-model="editor.casesensitive" multiple>
+									<v-btn-toggle v-model="editor.filter.caseSensitive" multiple>
 										<v-btn>
 											<v-icon>
 												mdi-case-sensitive-alt
@@ -94,16 +94,31 @@
 							<v-text-field clearable
 								class="pt-0 pb-6"
 								label="Search Text"
-								v-model="searchstringraw"
-								hide-details="auto"
-								:loading="editor.searchstringloading"></v-text-field>
+								v-model="editor.filter.searchString"
+								hide-details="auto"></v-text-field>
 							<v-row justify="center">
 								<v-date-picker
 									no-title
-									v-model="editor.months"
+									v-model="editor.filter.months"
 									type="month"
 									class="pb-n4"
 									multiple></v-date-picker>
+							</v-row>
+							<v-row class="mt-n4">
+								<v-col col="6">
+									<v-btn
+										small
+										block
+										@click="applyFilter"
+										:disabled="!editor.ledgerFilterDirty && !currentFilterDirty">Apply Filter</v-btn>
+								</v-col>
+								<v-col col="6">
+									<v-btn
+										small
+										block
+										@click="revertFilter"
+										:disabled="!currentFilterDirty">Revert Filter</v-btn>
+								</v-col>
 							</v-row>
 						</v-card>
 					</v-menu>
@@ -144,6 +159,7 @@
 						<v-card class="ignorenextcloud pa-4" max-width="375">
 							<v-switch
 								v-model="editor.shownontransaction"
+								@change="applyFilter"
 								label="Show Non-Transactions"></v-switch>
 							<v-switch
 								v-model="editor.showcodeinsteadofstatus"
@@ -156,6 +172,10 @@
 								multiple
 								:items="['Date', 'Status', 'Code', 'Description', 'Comment', 'Amount', 'Account', 'Second Account']">
 							</v-select>
+							<v-btn block @click="applyChange('set', 'status', '!')">Set ! Status</v-btn>
+							<v-btn block @click="applyChange('unset', 'status', '!')">Unset ! Status</v-btn>
+							<v-btn block @click="applyChange('set', 'status', '*')">Set * Status</v-btn>
+							<v-btn block @click="applyChange('unset', 'status', '*')">Unset * Status</v-btn>
 						</v-card>
 					</v-menu>
 				</v-app-bar>
@@ -175,7 +195,7 @@
 							</tr>
 						</table>
 						<div v-if="editor.editorOpen">
-							<div v-for="lblock in filteredLedger" v-bind:key="lblock.id">
+							<div v-for="lblock in editor.currentFilteredLedger" v-bind:key="lblock.id">
 								<v-lazy min-height="85" v-if="(lblock.type === 'other' && lblock.text !== '') || lblock.type !== 'other'">
 									<LedgerBlock
 										class="ignorenextcloud"
@@ -368,23 +388,8 @@ export default {
 			}
 			return (units.length > 1) || (amountsBlank !== 1) || (amountsEntered !== this.transaction.postings.length - 1)
 		},
-		filteredLedger() {
-			return this.$options.filters.filterBlocks(this.editor.ledger, this.editor.months, this.editor.shownontransaction, this.searchMatches, this.editor.searchfirstaccount, this.editor.searchtype, this.editor.searchstring, this.editor.casesensitive.includes(0), moment, this.editor.showrecentn)
-		},
-		searchstringraw: {
-			get() {
-				return this.searchString
-			},
-			set(val) {
-				this.editor.searchstringloading = true
-				if (this.editor.searchstringtimeout) {
-					clearTimeout(this.editor.searchstringtimeout)
-				}
-				this.editor.searchstringtimeout = setTimeout(() => {
-					this.editor.searchstringloading = false
-					this.editor.searchstring = val
-				}, 750)
-			}
+		currentFilterDirty() {
+			return JSON.stringify(this.editor.currentfilter) !== JSON.stringify(this.editor.filter)
 		}
 	},
 	methods: {
@@ -489,18 +494,20 @@ export default {
 			state.editor.ledgersaving = false
 			state.editor.accounts = []
 			state.editor.ledger = []
+			state.editor.ledgerFilterDirty = false
 			state.editor.shownontransaction = true
 			state.editor.showcodeinsteadofstatus = false
 			state.editor.alwaysshowcomments = false
 			state.editor.onlyenable = []
-			state.editor.showrecentn = 100
-			state.editor.months = []
-			state.editor.searchtype = 'All Fields'
-			state.editor.searchstring = ''
-			state.editor.casesensitive = []
-			state.editor.searchfirstaccount = ''
-			state.editor.searchstringtimeout = null
-			state.editor.searchstringloading = false
+			state.editor.filter = {}
+			state.editor.filter.showRecentN = 100
+			state.editor.filter.months = []
+			state.editor.filter.searchType = 'All Fields'
+			state.editor.filter.searchString = ''
+			state.editor.filter.caseSensitive = []
+			state.editor.filter.searchFirstAccount = ''
+			state.editor.currentfilter = JSON.parse(JSON.stringify(state.editor.filter))
+			state.editor.currentFilteredLedger = []
 		},
 		newPosting() {
 			return {
@@ -575,6 +582,7 @@ export default {
 					this.editor.ledger = loadedLedger.blocks
 					this.editor.accounts = loadedLedger.accounts
 					this.editor.editorOpen = true
+					this.editor.currentFilteredLedger = this.filteredLedger()
 					this.editor.ledgerloading = false
 				}
 			} catch (e) {
@@ -699,22 +707,72 @@ export default {
 							this.editor.ledger[i][prop] = val[prop]
 						}
 					}
+					this.editor.ledgerFilterDirty = true
 					return
 				}
 			}
 			alert('Could not find changed transaction in master list')
 		},
 		deleteTransaction(id) {
+			let found = false
 			for (let i = 0; i < this.editor.ledger.length; i++) {
 				if (this.editor.ledger[i].id === id) {
 					this.editor.ledger.splice(i, 1)
-					return
+					found = true
+					break
 				}
 			}
-			alert('Could not find transaction in master list')
+
+			for (let i = 0; i < this.editor.currentFilteredLedger.length; i++) {
+				if (this.editor.currentFilteredLedger[i].id === id) {
+					this.editor.currentFilteredLedger.splice(i, 1)
+					break
+				}
+			}
+			if (!found) {
+				alert('Could not find transaction in master list')
+			}
 		},
-		searchMatches(block, searchFirstAccount, searchType, searchString, caseSensitive) {
+		applyFilter() {
+			this.editor.currentfilter = JSON.parse(JSON.stringify(this.editor.filter))
+			this.editor.currentFilteredLedger = this.filteredLedger()
+			this.editor.ledgerFilterDirty = false
+		},
+		revertFilter() {
+			this.editor.filter = JSON.parse(JSON.stringify(this.editor.currentfilter))
+		},
+		filteredLedger() {
+			return this.$options.filters.filterBlocks(this.editor.ledger, this.editor.currentfilter, this.editor.shownontransaction, this.searchMatches, moment)
+		},
+		applyChange(action, field, val) {
+			let setDirty = false
+			for (let i = 0; i < this.editor.currentFilteredLedger.length; i++) {
+				if (this.editor.currentFilteredLedger[i].type === 'transaction' && field === 'status') {
+					if (action === 'set') {
+						if (this.editor.currentFilteredLedger[i].status.indexOf(val) < 0) {
+							let newVal = (this.editor.currentFilteredLedger[i].status + ' ' + val).trim()
+							if (newVal === '* !') {
+								newVal = '! *'
+							}
+							this.editor.currentFilteredLedger[i].status = newVal
+							setDirty = true
+						}
+					} else if (action === 'unset') {
+						if (this.editor.currentFilteredLedger[i].status.indexOf(val) >= 0) {
+							this.editor.currentFilteredLedger[i].status = (this.editor.currentFilteredLedger[i].status.replace(val, '')).trim()
+							setDirty = true
+						}
+					}
+				}
+			}
+			if (setDirty) {
+				this.editor.ledgerFilterDirty = true
+			}
+		},
+		searchMatches(block, currentfilter) {
+			const caseSensitive = currentfilter.caseSensitive.includes(0)
 			/* Sometimes this ends up as 'null' if the clear button is used. Deal with it. */
+			let searchString = currentfilter.searchString
 			if (!searchString) {
 				searchString = ''
 			}
@@ -722,13 +780,13 @@ export default {
 				searchString = searchString.toLocaleLowerCase()
 			}
 			/* Omit checking for 'All Fields' since that will be handled by the 'Any Account' block below */
-			if (searchFirstAccount || searchType === 'First Account') {
+			if (currentfilter.searchFirstAccount || currentfilter.searchType === 'First Account') {
 				if ((block.type === 'transaction' || block.type === 'other') && block.postingIndexes.length > 0) {
-					if (searchFirstAccount && block.lines[block.postingIndexes[0]].account !== searchFirstAccount) {
+					if (currentfilter.searchFirstAccount && block.lines[block.postingIndexes[0]].account !== currentfilter.searchFirstAccount) {
 						// searchFirstAccount is considered an 'AND' operation. If it fails, return false.
 						return false
 					}
-					if (searchType === 'First Account') {
+					if (currentfilter.searchType === 'First Account') {
 						if (caseSensitive) {
 							if (block.lines[block.postingIndexes[0]].account.indexOf(searchString) >= 0) {
 								return true
@@ -739,17 +797,17 @@ export default {
 							}
 						}
 					}
-				} else if (searchFirstAccount) {
+				} else if (currentfilter.searchFirstAccount) {
 					/* If we are using searchFirstAccount and this is not a transaction or the transaction has no postings, return false */
 					return false
 				}
 			}
 			// If 'All Fields' is being used but no search string is provided, just match everything
-			if (searchType === 'All Fields' && !searchString) {
+			if (currentfilter.searchType === 'All Fields' && !searchString) {
 				return true
 			}
 			/* Omit checking for 'All Fields' since that will be handled by the 'Any Account' block below */
-			if (searchType === 'Second Account') {
+			if (currentfilter.searchType === 'Second Account') {
 				if ((block.type === 'transaction' || block.type === 'other') && block.postingIndexes.length > 0) {
 					if (caseSensitive && block.lines[block.postingIndexes[1]].account.indexOf(searchString) >= 0) {
 						return true
@@ -758,7 +816,7 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Any Account' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Any Account' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction' || block.type === 'other') {
 					for (let i = 0; i < block.postingIndexes.length; i++) {
 						if (caseSensitive && block.lines[block.postingIndexes[i]].account.indexOf(searchString) >= 0) {
@@ -769,7 +827,7 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Date' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Date' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction') {
 					if (caseSensitive && block.date.indexOf(searchString) >= 0) {
 						return true
@@ -778,14 +836,14 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Status' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Status' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction') {
-					if (block.status === searchString) {
+					if (block.status.indexOf(searchString) >= 0) {
 						return true
 					}
 				}
 			}
-			if (searchType === 'Code' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Code' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction') {
 					if (caseSensitive && block.code.indexOf(searchString) >= 0) {
 						return true
@@ -794,7 +852,7 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Description' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Description' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction') {
 					if (caseSensitive && block.description.indexOf(searchString) >= 0) {
 						return true
@@ -803,7 +861,7 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Comment' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Comment' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction') {
 					if (caseSensitive && block.comment.indexOf(searchString) >= 0) {
 						return true
@@ -833,7 +891,7 @@ export default {
 					}
 				}
 			}
-			if (searchType === 'Amount' || searchType === 'All Fields') {
+			if (currentfilter.searchType === 'Amount' || currentfilter.searchType === 'All Fields') {
 				if (block.type === 'transaction' || block.type === 'other') {
 					for (let i = 0; i < block.lines.length; i++) {
 						if (block.lines[i].type === 'posting') {
@@ -857,6 +915,8 @@ export default {
 				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
 			}
 			this.editor.ledger.push({ id: lastId + 1, type: 'transaction', lines: [], postingIndexes: [], date: moment().format('YYYY-MM-DD'), status: '', code: '', description: '', comment: '' })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
 			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
 		},
 		addCommentBlock() {
@@ -865,6 +925,8 @@ export default {
 				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
 			}
 			this.editor.ledger.push({ id: lastId + 1, type: 'comment', text: '', commentType: ';' })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
 			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
 		},
 		addOtherBlock() {
@@ -872,28 +934,30 @@ export default {
 			if (this.editor.ledger.length > 0) {
 				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
 			}
-			this.editor.ledger.push({ id: lastId + 1, type: 'other', text: '<Replace this with ledger entry>', lines: [], postingIndexes: [] })
+			this.editor.ledger.push({ id: lastId + 1, type: 'other', text: '', lines: [], postingIndexes: [] })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
 			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
 		},
 	},
 	filters: {
-		filterBlocks(blockList, months, shownontransaction, searchMatches, searchFirstAccount, searchType, searchString, caseSensitive, moment, showRecentN) {
+		filterBlocks(blockList, currentfilter, shownontransaction, searchMatches, moment) {
 			const filteredList = []
 			const momentMonths = []
-			for (let j = 0; j < months.length; j++) {
-				momentMonths.push(moment(months[j], 'YYYY-MM'))
+			for (let j = 0; j < currentfilter.months.length; j++) {
+				momentMonths.push(moment(currentfilter.months[j], 'YYYY-MM'))
 			}
 			for (let i = 0; i < blockList.length; i++) {
 				if (blockList[i].type === 'transaction') {
 					if (momentMonths.length <= 0) {
-						if (searchMatches(blockList[i], searchFirstAccount, searchType, searchString, caseSensitive)) {
+						if (searchMatches(blockList[i], currentfilter)) {
 							filteredList.push(blockList[i])
 						}
 					} else {
 						const thisDate = moment(blockList[i].date, 'YYYY-MM-DD')
 						for (let j = 0; j < momentMonths.length; j++) {
 							if (thisDate.year() === momentMonths[j].year() && thisDate.month() === momentMonths[j].month()) {
-								if (searchMatches(blockList[i], searchFirstAccount, searchType, searchString, caseSensitive)) {
+								if (searchMatches(blockList[i], currentfilter)) {
 									filteredList.push(blockList[i])
 								}
 								break
@@ -901,13 +965,13 @@ export default {
 						}
 					}
 				} else if (shownontransaction) {
-					if (searchMatches(blockList[i], searchFirstAccount, searchType, searchString, caseSensitive)) {
+					if (searchMatches(blockList[i], currentfilter)) {
 						filteredList.push(blockList[i])
 					}
 				}
 			}
-			if (filteredList.length > showRecentN) {
-				filteredList.splice(0, filteredList.length - showRecentN)
+			if (filteredList.length > currentfilter.showRecentN) {
+				filteredList.splice(0, filteredList.length - currentfilter.showRecentN)
 			}
 			return filteredList
 		}
