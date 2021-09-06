@@ -183,13 +183,13 @@
 					<v-container>
 						<table v-if="!editor.editorOpen" class="hledger-report">
 							<tr v-for="row in report.data" :key="row.id">
-								<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
-									<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell })">{{ cell }}</a>
+								<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell), negativevalue: isNegativeValue(cell) }">
+									<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell.replace(/^Budget:/,'') })">{{ cell }}</a>
 									<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
 										edit
 									</button>
 									<div v-else>
-										{{ truncate(cell, 32) }}
+										{{ truncate(cell, 42) }}
 									</div>
 								</td>
 							</tr>
@@ -400,13 +400,21 @@ export default {
 			return text.slice(0, stop) + (stop < text.length ? clamp || '...' : '')
 		},
 		isSubAccount(x) {
-			return x.match(/^(assets|liabilities|equity|income|expenses):/g)
+			return x.match(/^(assets|liabilities|equity|income|expenses|budget):/ig)
 		},
 		shouldOutlineRow(x) {
-			return ['Account', 'Total:'].includes(x)
+			return ['Account', 'Total:', 'total'].includes(x)
 		},
 		shouldIndentCell(x) {
 			return ['Account', '<unbudgeted>'].includes(x) || this.isSubAccount(x)
+		},
+		isNegativeValue(x) {
+			const firstDigit = x.match(/\d/)
+			if (!firstDigit) {
+				return false
+			}
+			const nonNumbers = x.replace(/\d/g, '').length
+			return x.indexOf('-') >= 0 && nonNumbers < (x.length - nonNumbers) && x.indexOf('-') < x.indexOf(firstDigit)
 		},
 		startAddingTransactions() {
 			this.initializeTransaction(this)
