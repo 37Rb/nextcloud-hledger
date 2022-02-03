@@ -9,6 +9,7 @@
 					:icon="item.icon"
 					@click="getReport(item.name, item)" />
 				<AppNavigationItem title="Edit Ledger" icon="icon-template-add" @click="openEditor()" />
+				<AppNavigationItem title="Envelope Budget" icon="icon-template-add" @click="openEnvelopeBudget()" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -181,7 +182,7 @@
 				</v-app-bar>
 				<v-main>
 					<v-container>
-						<table v-if="!editor.editorOpen" class="hledger-report">
+						<table v-if="!editor.editorOpen && !envelopeBudgetOpen" class="hledger-report">
 							<tr v-for="row in report.data" :key="row.id">
 								<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell), negativevalue: isNegativeValue(cell) }">
 									<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell.replace(/^Budget:/,'') })">{{ cell }}</a>
@@ -204,11 +205,14 @@
 										v-bind:alwaysshowcomments="editor.alwaysshowcomments"
 										v-bind:onlyenable="editor.onlyenable"
 										v-bind:showcodeinsteadofstatus="editor.showcodeinsteadofstatus"
+										v-bind:currencystyles="editor.currencyStyles"
 										@change="ledgerBlockChanged"
 										@delete-transaction="deleteTransaction(lblock.id)"></LedgerBlock>
 								</v-lazy>
 							</div>
 						</div>
+						<EnvelopeBudget v-if="envelopeBudgetOpen">
+						</EnvelopeBudget>
 					</v-container>
 				</v-main>
 			</v-app>
@@ -315,6 +319,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { VueAutosuggest } from 'vue-autosuggest'
 import LedgerBlock from './LedgerBlock.vue'
+import EnvelopeBudget from './EnvelopeBudget.vue'
 import { toLedger, fromLedger } from './ledgerparser2.js'
 export default {
 	name: 'App',
@@ -328,11 +333,13 @@ export default {
 		DatetimePicker,
 		VueAutosuggest,
 		LedgerBlock,
+		EnvelopeBudget,
 	},
 	data() {
 		const state = OCP.InitialState.loadState('hledger', 'state')
 		this.initializeTransaction(state)
 		this.initializeEditor(state)
+		state.envelopeBudgetOpen = false
 		return state
 	},
 	async mounted() {
@@ -498,6 +505,7 @@ export default {
 				}
 			}
 			state.editor.editorOpen = false
+			state.editor.currencyStyles = {}
 			state.editor.ledgerloading = false
 			state.editor.ledgersaving = false
 			state.editor.accounts = []
@@ -557,6 +565,7 @@ export default {
 				this.report.data = (await axios.get(this.apiUrl(report), getOptions)).data
 				this.report.name = report
 				this.editor.editorOpen = false
+				this.envelopeBudgetOpen = false
 				this.report.options = options
 
 				/* For register-style reports, add "edit" button and scroll to bottom */
@@ -589,7 +598,9 @@ export default {
 					}
 					this.editor.ledger = loadedLedger.blocks
 					this.editor.accounts = loadedLedger.accounts
+					this.editor.currencyStyles = loadedLedger.currencyStyles
 					this.editor.editorOpen = true
+					this.envelopeBudgetOpen = false
 					this.editor.currentFilteredLedger = this.filteredLedger()
 					this.editor.ledgerloading = false
 				}
@@ -597,6 +608,10 @@ export default {
 				showError(t('hledger', 'Error getting ledger contents: ' + e.message))
 				this.editor.ledgerloading = false
 			}
+		},
+		openEnvelopeBudget() {
+			this.envelopeBudgetOpen = true
+			this.editor.editorOpen = false
 		},
 		async saveLedger() {
 			this.editor.ledgersaving = true

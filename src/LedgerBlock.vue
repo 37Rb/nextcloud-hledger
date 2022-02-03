@@ -246,9 +246,11 @@
 </template>
 
 <script>
+import { toAmount, fromAmount } from './ledgerparser2.js'
+import { BigNumber } from 'bignumber.js'
 export default {
 	name: 'LedgerBlock',
-	props: ['lblock', 'accounts', 'alwaysshowcomments', 'onlyenable', 'showcodeinsteadofstatus'],
+	props: ['lblock', 'accounts', 'alwaysshowcomments', 'onlyenable', 'showcodeinsteadofstatus', 'currencystyles'],
 	data() {
 		return {
 			datemenu: false,
@@ -353,90 +355,31 @@ export default {
 		},
 		computedAmountInfo: {
 			get() {
-				let computeRemaining = true
-				let prefixCurrency = null
-				let postfixCurrency = null
-				let maxDotDecimalPlaces = 0
-				let maxCommaDecimalPlaces = 0
-				const rawAmounts = []
+				let sameCurrency = null
+				let lastAmountObj = null
+				let amountSum = BigNumber(0)
 				for (let i = 0; i < this.lblockobj.postingIndexes.length; i++) {
 					const thisAmount = this.lblockobj.lines[this.lblockobj.postingIndexes[i]].amount
-					if (thisAmount.length > 0) {
-						if (thisAmount.indexOf('=') >= 0) {
-							// If there are any assignments or assertions, we cannot compute remaining
-							computeRemaining = false
-							break
-						}
-						const thisPrefix = thisAmount.replace('-', '').replace(/[0-9 ,\\.-]*[0-9].*/, '')
-						const thisPostfix = thisAmount.replace('-', '').replace(/.*[0-9][0-9 ,\\.-]*/, '')
-						const thisRawAmount = thisAmount.replace(/[^0-9,\\.-]+/g, '')
-						const thisRawAmountNoDots = thisAmount.replace(/[^0-9,-]+/g, '')
-						const thisRawAmountNoCommas = thisAmount.replace(/[^0-9\\.-]+/g, '')
-						if (prefixCurrency !== null && prefixCurrency !== thisPrefix) {
-							// If there are different currencies, we cannot compute remaining
-							computeRemaining = false
-							break
+					const thisAmountObj = fromAmount(thisAmount, this.currencystyles)
+					if (thisAmountObj && thisAmountObj.amount) {
+						if (sameCurrency === null || thisAmountObj.amount.currency === sameCurrency) {
+							sameCurrency = thisAmountObj.amount.currency
+							amountSum = amountSum.plus(thisAmountObj.amount.bn)
+							lastAmountObj = thisAmountObj
 						} else {
-							prefixCurrency = thisPrefix
+							return ''
 						}
-						if (postfixCurrency !== null && postfixCurrency !== thisPostfix) {
-							// If there are different currencies, we cannot compute remaining
-							computeRemaining = false
-							break
-						} else {
-							postfixCurrency = thisPostfix
+						if (thisAmountObj.assertAssign) {
+							return ''
 						}
-						if (thisRawAmountNoCommas.indexOf('.') >= 0) {
-							const thisDotDecimalPlaces = thisRawAmountNoCommas.length - thisRawAmountNoCommas.indexOf('.') - 1
-							if (thisDotDecimalPlaces > maxDotDecimalPlaces) {
-								maxDotDecimalPlaces = thisDotDecimalPlaces
-							}
-						}
-						if (thisRawAmountNoDots.indexOf(',') >= 0) {
-							const thisCommaDecimalPlaces = thisRawAmountNoDots.length - thisRawAmountNoDots.indexOf(',') - 1
-							if (thisCommaDecimalPlaces > maxCommaDecimalPlaces) {
-								maxCommaDecimalPlaces = thisCommaDecimalPlaces
-							}
-						}
-						rawAmounts.push(thisRawAmount)
 					}
 				}
-				if (computeRemaining && rawAmounts.length > 0) {
-					let decimalPoint = '.'
-					let maxDecimalPlaces = maxDotDecimalPlaces
-					// Figure out what type of decimal point to use
-					if (maxDotDecimalPlaces !== 0 && maxCommaDecimalPlaces !== 0) {
-						decimalPoint = (maxDotDecimalPlaces < maxCommaDecimalPlaces) ? '.' : ','
-						maxDecimalPlaces = (maxDotDecimalPlaces < maxCommaDecimalPlaces) ? maxDotDecimalPlaces : maxCommaDecimalPlaces
-					} else if (maxCommaDecimalPlaces !== 0) {
-						decimalPoint = ','
-						maxDecimalPlaces = maxCommaDecimalPlaces
+				if (sameCurrency !== null) {
+					if (lastAmountObj.amountPrice) {
+						lastAmountObj.amountPrice = null
 					}
-					let totalAmount = 0
-					// Add up total amount leftover with all transactions
-					for (let i = 0; i < rawAmounts.length; i++) {
-						let thisDecimalPlaces = 0
-						if (rawAmounts[i].indexOf(decimalPoint) >= 0) {
-							thisDecimalPlaces = rawAmounts[i].length - rawAmounts[i].indexOf(decimalPoint) - 1
-						}
-						const thisNumericAmount = parseInt(rawAmounts[i].replace(/[,\\.]/g, ''))
-						totalAmount += thisNumericAmount * Math.pow(10, maxDecimalPlaces - thisDecimalPlaces)
-					}
-					let stringAmount = Math.abs(totalAmount).toString()
-					// Pad zeros if necessary
-					if (stringAmount.length < maxDecimalPlaces + 1) {
-						stringAmount = '0'.repeat((maxDecimalPlaces + 1) - stringAmount.length) + stringAmount
-					}
-					// Add in the decimal marker, if necessary
-					if (maxDecimalPlaces > 0) {
-						stringAmount = stringAmount.slice(0, stringAmount.length - maxDecimalPlaces) + decimalPoint + stringAmount.slice(-maxDecimalPlaces)
-					}
-					if (totalAmount > 0) {
-						// Add in minus sign, if necessary
-						stringAmount = '-' + stringAmount
-					}
-					stringAmount = prefixCurrency + stringAmount + postfixCurrency
-					return ' (leftover: ' + stringAmount + ')'
+					lastAmountObj.amount.bn = amountSum.negated()
+					return ' (leftover: ' + toAmount(lastAmountObj, this.currencystyles) + ')'
 				} else {
 					return ''
 				}

@@ -79,6 +79,43 @@ class HLedger
         ]);
     }
 
+    public function balance($query, $options)
+    {
+        $useDefaults = true;
+
+        foreach ($options as $option) {
+            if ($option[0] == 'daily' || $option[0] == 'weekly' || $option[0] == 'monthly' || $option[0] == 'quarterly' || $option[0] == 'yearly' ||
+                $option[0] == 'historical' || $option[0] == 'market') {
+                // Allowed
+            } else if ($option[0] == 'begin' || $option[0] == 'end') {
+                // Allowed
+            } else if ($option[0] == 'file') {
+                // Allowed, but check if file exists
+                $list = $this->config->getListOfJournalFiles();
+                if (!in_array($option[1], $list))
+                {
+                    // File that is being included either doesn't exist or it's not in a "safe" location. Security issue!
+                    return null;
+                }
+                $useDefaults = false;
+            } else {
+                // Only allow options that have been specifically allowed
+                return null;
+            }
+        }
+        if ($useDefaults) {
+            $hledger = $this->createHLedger();
+        } else  {
+            $hledger = $this->createBlankHLedger();
+        }
+        if (count($query) > 0)
+        {
+            // Security issue, don't allow users to pass argument files or actual options in the $query. Adding '--' to the args prevents this.
+            $query = array_merge(['--'], $query);
+        }
+        return $hledger->balance($options, $query);
+    }
+
     public function customReport($reportName, $includeDefaultFiles)
     {
         $report = null;
@@ -112,7 +149,8 @@ class HLedger
 
     public function accountRegister($account)
     {
-        $report = $this->createHLedger()->accountRegister([['market']], [$account]);
+        // Security issue, don't allow users to pass argument files or actual options in the $account. Adding '--' to the args prevents this.
+        $report = $this->createHLedger()->accountRegister([['market']], ['--', $account]);
         return array_map(function ($row) {
             return array_slice($row, 1);  // remove txnidx column
         }, $report);

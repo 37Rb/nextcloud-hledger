@@ -1,9 +1,121 @@
+import { BigNumber } from 'bignumber.js'
+
+const parseAmount = function(amountString, currencyStyles) {
+	// Just defaults, in case no style is found
+	let decimalSeparator = '.'
+	let groupSeparator = ','
+	const parsedAmount = {}
+	const matches = [...amountString.matchAll(/\d+/g)]
+	if (matches.length === 0) {
+		return null
+	}
+	parsedAmount.prefix = amountString.substring(0, matches[0].index)
+	parsedAmount.postfix = amountString.substring(matches[matches.length - 1].index + matches[matches.length - 1][0].length)
+	parsedAmount.stringAmount = amountString.substring(matches[0].index, matches[matches.length - 1].index + matches[matches.length - 1][0].length)
+
+	// Remove negative symbol from prefix and put it on the amount
+	if (parsedAmount.prefix.indexOf('-') >= 0) {
+		parsedAmount.prefix = parsedAmount.prefix.split('-').join('')
+		parsedAmount.stringAmount = '-' + parsedAmount.stringAmount
+	}
+	parsedAmount.prefix = parsedAmount.prefix.trimStart()
+	parsedAmount.postfix = parsedAmount.postfix.trimEnd()
+	parsedAmount.currency = ''
+	if (parsedAmount.prefix.length > 0) {
+		parsedAmount.currency = parsedAmount.prefix.trim()
+	} else if (parsedAmount.postfix.length > 0) {
+		parsedAmount.currency = parsedAmount.postfix.trim()
+	}
+	if (currencyStyles[parsedAmount.currency]) {
+		decimalSeparator = currencyStyles[parsedAmount.currency].decimalSeparator
+		groupSeparator = currencyStyles[parsedAmount.currency].groupSeparator
+	}
+	let noCurrencyAmount = parsedAmount.stringAmount
+	// Remove any group separators to parse it with BigNumber
+	noCurrencyAmount = noCurrencyAmount.split(groupSeparator).join('')
+	// Replace decimal separator with '.' to parse it with BigNumber
+	if (decimalSeparator !== '.') {
+		noCurrencyAmount = noCurrencyAmount.split(decimalSeparator).join('.')
+	}
+	parsedAmount.bn = BigNumber(noCurrencyAmount)
+
+	return parsedAmount
+}
+
+const serializeAmount = function(amountObj, currencyStyles) {
+	let amountString = ''
+	let currencyStyle = { decimalSeparator: '.', groupSeparator: ',', decimalSize: 2, groupSize: 3 }
+
+	if (currencyStyles[amountObj.currency]) {
+		currencyStyle = currencyStyles[amountObj.currency]
+	}
+
+	if (amountObj === null) {
+		return ''
+	}
+	amountString += amountObj.prefix
+	amountString += amountObj.bn.toFormat(currencyStyle.decimalSize, null, {
+		decimalSeparator: currencyStyle.decimalSeparator,
+		groupSeparator: currencyStyle.groupSeparator,
+		groupSize: currencyStyle.groupSize
+	})
+	amountString += amountObj.postfix
+	return amountString
+}
+
+const fromAmount = function(amountString, currencyStyles = {}) {
+	const amountObject = {}
+	const equalSplit = amountString.split(/(==\*|=\*|==|=)/g)
+	const priceSplit = equalSplit[0].split(/(\(@@\)|\(@\)|@@|@)/g)
+	amountObject.amount = parseAmount(priceSplit[0], currencyStyles)
+	if (priceSplit.length > 1) {
+		amountObject.amountPrice = parseAmount(priceSplit[2], currencyStyles)
+		amountObject.amountPriceType = priceSplit[1]
+	}
+	if (equalSplit.length > 1) {
+		const priceSplitAssert = equalSplit[2].split(/(\(@@\)|\(@\)|@@|@)/g)
+		amountObject.assertAssign = parseAmount(priceSplitAssert[0], currencyStyles)
+		if (priceSplitAssert.length > 1) {
+			amountObject.assertAssignPrice = parseAmount(priceSplitAssert[2], currencyStyles)
+			amountObject.assertAssignPriceType = priceSplitAssert[1]
+		}
+		amountObject.equalType = equalSplit[1]
+	}
+	if (amountObject.amount === null) {
+		return null
+	}
+	return amountObject
+}
+
+const toAmount = function(amountObject, currencyStyles = {}) {
+	let amountString = ''
+	if (amountObject === null) {
+		return ''
+	}
+	if (amountObject.amount) {
+		amountString += serializeAmount(amountObject.amount, currencyStyles)
+	}
+	if (amountObject.amountPrice) {
+		amountString += ' ' + amountObject.amountPriceType + ' ' + serializeAmount(amountObject.amountPrice, currencyStyles)
+	}
+	if (amountObject.assertAssign) {
+		amountString += ' ' + amountObject.equalType + ' ' + serializeAmount(amountObject.assertAssign, currencyStyles)
+		if (amountObject.assertAssignPrice) {
+			amountString += ' ' + amountObject.assertAssignPriceType + ' ' + serializeAmount(amountObject.assertAssignPrice, currencyStyles)
+		}
+	}
+	return amountString
+}
+
 const fromLedger = function(ledger, normalize = true) {
 	const blocks = []
 	const transactionIndexes = []
 	const lines = ledger.split(/\r?\n/)
 	const accountList = {}
 	const txnRegex = /^([0-9]+[-\\/][0-9]+[-\\/][0-9]+)( (!|\*)?( )?(!|\*)?( )?(\(.*\))?( )?([^;]*))?(;(.*)?)?$/
+	const allAmounts = []
+	const separatorStyles = {}
+
 	for (let i = 0; i < lines.length; i++) {
 		const txnRegexResult = txnRegex.exec(lines[i])
 
@@ -69,6 +181,25 @@ const fromLedger = function(ledger, normalize = true) {
 						comment = remaining[3]
 					}
 				}
+				if (amount.length > 0) {
+					// Unfortunately we don't know decimal or group separators yet so this parsedAmount is trash except for the surrounding currency
+					let parsedAmount = fromAmount(amount)
+					if (parsedAmount !== null) {
+						parsedAmount = parsedAmount.amount
+						if (!separatorStyles[parsedAmount.currency]) {
+							const separatorStyle = { votesDotDecimalSeparator: 0, votesCommaDecimalSeparator: 0 }
+							separatorStyles[parsedAmount.currency] = separatorStyle
+						}
+						const separatorStyle = separatorStyles[parsedAmount.currency]
+
+						if (amount.lastIndexOf('.') > amount.lastIndexOf(',') && (amount.match(/\./g) || []).length === 1) {
+							separatorStyle.votesDotDecimalSeparator++
+						} else if (amount.lastIndexOf(',') > amount.lastIndexOf('.') && (amount.match(/,/g) || []).length === 1) {
+							separatorStyle.votesCommaDecimalSeparator++
+						}
+						allAmounts.push(parsedAmount)
+					}
+				}
 				blocks[blocks.length - 1].lines.push({ type: 'posting', account, amount, comment, status })
 				if (blocks[blocks.length - 1].type === 'transaction') {
 					accountList[account] = 1
@@ -108,7 +239,62 @@ const fromLedger = function(ledger, normalize = true) {
 			}
 		}
 	}
-	return { blocks, transactionIndexes, accounts: Object.keys(accountList) }
+	const currencyStyles = {}
+	for (const cur in separatorStyles) {
+		const currencyStyle = { decimalSeparator: '.', groupSeparator: ',', decimalSize: 2, groupSize: 3 }
+		if (separatorStyles[cur].votesCommaDecimalSeparator > separatorStyles[cur].votesDotDecimalSeparator) {
+			currencyStyle.decimalSeparator = ','
+			currencyStyle.groupSeparator = '.'
+		}
+		currencyStyles[cur] = currencyStyle
+	}
+
+	const decimalSizeVotes = {}
+	const groupSizeVotes = {}
+
+	for (let i = 0; i < allAmounts.length; i++) {
+		const noCurrencyAmount = allAmounts[i].stringAmount
+		let noDecimalAmount = noCurrencyAmount
+		if (noCurrencyAmount.lastIndexOf(currencyStyles[allAmounts[i].currency].decimalSeparator) >= 0) {
+			const vote = (noCurrencyAmount.length - noCurrencyAmount.lastIndexOf(currencyStyles[allAmounts[i].currency].decimalSeparator) - 1).toString() + '_' + allAmounts[i].currency
+			if (!decimalSizeVotes[vote]) {
+				decimalSizeVotes[vote] = 0
+			}
+			decimalSizeVotes[vote]++
+			noDecimalAmount = noCurrencyAmount.substring(0, noCurrencyAmount.lastIndexOf(currencyStyles[allAmounts[i].currency].decimalSeparator))
+		}
+		if (noDecimalAmount.lastIndexOf(currencyStyles[allAmounts[i].currency].groupSeparator) >= 0) {
+			const vote = (noDecimalAmount.length - noDecimalAmount.lastIndexOf(currencyStyles[allAmounts[i].currency].groupSeparator) - 1).toString() + '_' + allAmounts[i].currency
+			if (!groupSizeVotes[vote]) {
+				groupSizeVotes[vote] = 0
+			}
+			groupSizeVotes[vote]++
+		}
+	}
+
+	for (const cur in currencyStyles) {
+		let maxKey = null
+		for (const key in decimalSizeVotes) {
+			if (key.endsWith('_' + cur) && (maxKey === null || decimalSizeVotes[key] > decimalSizeVotes[maxKey])) {
+				maxKey = key
+			}
+		}
+		if (maxKey !== null) {
+			currencyStyles[cur].decimalSize = Number(maxKey.split('_')[0])
+		}
+
+		maxKey = null
+		for (const key in groupSizeVotes) {
+			if (key.endsWith('_' + cur) && (maxKey === null || groupSizeVotes[key] > groupSizeVotes[maxKey])) {
+				maxKey = key
+			}
+		}
+		if (maxKey !== null) {
+			currencyStyles[cur].groupSize = Number(maxKey.split('_')[0])
+		}
+	}
+
+	return { blocks, transactionIndexes, accounts: Object.keys(accountList), currencyStyles }
 }
 
 const toLedger = function(objs) {
@@ -184,4 +370,4 @@ const toLedger = function(objs) {
 	return ledger
 }
 
-export { fromLedger, toLedger }
+export { fromLedger, toLedger, fromAmount, toAmount }
