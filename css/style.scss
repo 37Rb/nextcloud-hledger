@@ -20,6 +20,10 @@ table.hledger-report td.indent {
 	padding-left: 40px;
 }
 
+table.hledger-report td.negativevalue {
+	color: red;
+}
+
 table.hledger-report div {
 	padding-top: 1px;
 	padding-bottom: 1px;

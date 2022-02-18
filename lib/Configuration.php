@@ -104,16 +104,16 @@ class Configuration
 
     public function getOperatingSystemPath($file)
     {
-        $userFiles = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
-        $filePath = $this->rootFolder->getFullPath($this->getSetting('hledger_folder') . '/' . $file);
-        return realpath($userFiles . $filePath);
+        return realpath($this->getOperatingSystemPathForData() . '/' . $file);
     }
 
     public function getOperatingSystemPathForData()
     {
-        $userFiles = $this->config->getSystemValue('datadirectory') . '/' . $this->userId . '/files';
-        $filePath = $this->rootFolder->getFullPath($this->getSetting('hledger_folder'));
-        return realpath($userFiles . $filePath);
+        $hledgerFolder = $this->rootFolder->getUserFolder($this->userId)->get($this->getSetting('hledger_folder'));
+        $storage = $hledgerFolder->getStorage();
+        $internalPath = $hledgerFolder->getInternalPath();
+        $fullPath = $storage->getLocalFile($internalPath);
+        return $fullPath;
     }
 
     public function createMissingFiles()

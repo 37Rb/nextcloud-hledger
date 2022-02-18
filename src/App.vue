@@ -8,6 +8,8 @@
 					:title="item.title"
 					:icon="item.icon"
 					@click="getReport(item.name, item)" />
+				<AppNavigationItem title="Edit Ledger" icon="icon-template-add" @click="openEditor()" />
+				<AppNavigationItem title="Envelope Budget" icon="icon-template-add" @click="openEnvelopeBudget()" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings>
@@ -28,19 +30,192 @@
 			</template>
 		</AppNavigation>
 		<AppContent>
-			<table class="hledger-report">
-				<tr v-for="row in report.data" :key="row.id">
-					<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell) }">
-						<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell })">{{ cell }}</a>
-						<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
-							edit
-						</button>
-						<div v-else>
-							{{ truncate(cell, 32) }}
+			<v-app id="inspire">
+				<v-app-bar
+					class="ignorenextcloud mt-13"
+					color="white"
+					elevate-on-scroll
+					v-if="editor.editorOpen"
+					app>
+					<v-spacer></v-spacer>
+					<v-select
+						class="pr-5"
+						hide-details="auto"
+						style="max-width: 175px"
+						v-model="editor.selectedledger"
+						:loading="editor.ledgerloading"
+						label="Select Ledger File"
+						@change="openEditor"
+						:items="editor.availableledgers"></v-select>
+					<v-menu offset-y :close-on-content-click="false">
+						<template v-slot:activator="{ on, attrs }">
+							<v-btn
+								color="secondary"
+								dark
+								fab
+								v-bind="attrs"
+								v-on="on">
+								<v-icon dark>
+									mdi-filter-menu
+								</v-icon>
+							</v-btn>
+						</template>
+						<v-card class="ignorenextcloud pa-4" max-width="375">
+							<v-select
+								hide-details="auto"
+								class="pt-0"
+								label="Show most recent"
+								v-model="editor.filter.showRecentN"
+								:items="[50, 100, 500, 1000]"></v-select>
+							<v-combobox v-model="editor.filter.searchFirstAccount"
+								:items="editor.accounts"
+								label="Filter by First Account"
+								hide-details="auto"
+								clearable></v-combobox>
+							<v-row align="center">
+								<v-col col="9">
+									<v-select class="pt-0"
+										style="max-width: 160px"
+										label="Search Type"
+										hide-details="auto"
+										v-model="editor.filter.searchType"
+										:items="['All Fields', 'Date', 'Status', 'Code', 'Description', 'Comment', 'Amount', 'Any Account', 'First Account', 'Second Account']">
+									</v-select>
+								</v-col>
+								<v-col col="3">
+									<v-btn-toggle v-model="editor.filter.caseSensitive" multiple>
+										<v-btn>
+											<v-icon>
+												mdi-case-sensitive-alt
+											</v-icon>
+										</v-btn>
+									</v-btn-toggle>
+								</v-col>
+							</v-row>
+							<v-text-field clearable
+								class="pt-0 pb-6"
+								label="Search Text"
+								v-model="editor.filter.searchString"
+								hide-details="auto"></v-text-field>
+							<v-row justify="center">
+								<v-date-picker
+									no-title
+									v-model="editor.filter.months"
+									type="month"
+									class="pb-n4"
+									multiple></v-date-picker>
+							</v-row>
+							<v-row class="mt-n4">
+								<v-col col="6">
+									<v-btn
+										small
+										block
+										@click="applyFilter"
+										:disabled="!editor.ledgerFilterDirty && !currentFilterDirty">Apply Filter</v-btn>
+								</v-col>
+								<v-col col="6">
+									<v-btn
+										small
+										block
+										@click="revertFilter"
+										:disabled="!currentFilterDirty">Revert Filter</v-btn>
+								</v-col>
+							</v-row>
+						</v-card>
+					</v-menu>
+					<v-menu offset-y>
+						<template v-slot:activator="{ on, attrs }">
+							<v-btn
+								color="primary"
+								dark
+								fab
+								v-bind="attrs"
+								v-on="on">
+								<v-icon dark>
+									mdi-plus
+								</v-icon>
+							</v-btn>
+						</template>
+						<v-list>
+							<v-list-item @click="addTransactionBlock"><v-list-item-title>Add Transaction Block</v-list-item-title></v-list-item>
+							<v-list-item @click="addCommentBlock"><v-list-item-title>Add Comment</v-list-item-title></v-list-item>
+							<v-list-item @click="addOtherBlock"><v-list-item-title>Add Generic Block</v-list-item-title></v-list-item>
+						</v-list>
+					</v-menu>
+					<v-btn fab
+						color="secondary"
+						:loading="editor.ledgersaving"
+						@click="saveLedger">
+						<v-icon>mdi-content-save</v-icon>
+					</v-btn>
+					<v-menu offset-y :close-on-content-click="false">
+						<template v-slot:activator="{ on, attrs }">
+							<v-btn icon
+								x-large
+								v-bind="attrs"
+								v-on="on">
+								<v-icon>mdi-dots-vertical</v-icon>
+							</v-btn>
+						</template>
+						<v-card class="ignorenextcloud pa-4" max-width="375">
+							<v-switch
+								v-model="editor.shownontransaction"
+								@change="applyFilter"
+								label="Show Non-Transactions"></v-switch>
+							<v-switch
+								v-model="editor.showcodeinsteadofstatus"
+								label="Show Code Instead of Status"></v-switch>
+							<v-switch
+								v-model="editor.alwaysshowcomments"
+								label="Always Show Comments"></v-switch>
+							<v-select label="Only Enable Editing"
+								v-model="editor.onlyenable"
+								multiple
+								:items="['Date', 'Status', 'Code', 'Description', 'Comment', 'Amount', 'Account', 'Second Account']">
+							</v-select>
+							<v-btn block @click="applyChange('set', 'status', '!')">Set ! Status</v-btn>
+							<v-btn block @click="applyChange('unset', 'status', '!')">Unset ! Status</v-btn>
+							<v-btn block @click="applyChange('set', 'status', '*')">Set * Status</v-btn>
+							<v-btn block @click="applyChange('unset', 'status', '*')">Unset * Status</v-btn>
+						</v-card>
+					</v-menu>
+				</v-app-bar>
+				<v-main>
+					<v-container>
+						<table v-if="!editor.editorOpen && !envelopeBudgetOpen" class="hledger-report">
+							<tr v-for="row in report.data" :key="row.id">
+								<td v-for="cell in row" :key="cell.id" :class="{ outline: shouldOutlineRow(row[0]), indent: shouldIndentCell(cell), negativevalue: isNegativeValue(cell) }">
+									<a v-if="isSubAccount(cell)" href="#" @click="getReport('accountregister', { account: cell.replace(/^Budget:/,'') })">{{ cell }}</a>
+									<button v-else-if="cell === 'edit'" @click="editTransaction(row)">
+										edit
+									</button>
+									<div v-else>
+										{{ truncate(cell, 42) }}
+									</div>
+								</td>
+							</tr>
+						</table>
+						<div v-if="editor.editorOpen">
+							<div v-for="lblock in editor.currentFilteredLedger" v-bind:key="lblock.id">
+								<v-lazy min-height="85" v-if="(lblock.type === 'other' && lblock.text !== '') || lblock.type !== 'other'">
+									<LedgerBlock
+										class="ignorenextcloud"
+										v-bind:lblock="lblock"
+										v-bind:accounts="editor.accounts"
+										v-bind:alwaysshowcomments="editor.alwaysshowcomments"
+										v-bind:onlyenable="editor.onlyenable"
+										v-bind:showcodeinsteadofstatus="editor.showcodeinsteadofstatus"
+										v-bind:currencystyles="editor.currencyStyles"
+										@change="ledgerBlockChanged"
+										@delete-transaction="deleteTransaction(lblock.id)"></LedgerBlock>
+								</v-lazy>
+							</div>
 						</div>
-					</td>
-				</tr>
-			</table>
+						<EnvelopeBudget v-if="envelopeBudgetOpen">
+						</EnvelopeBudget>
+					</v-container>
+				</v-main>
+			</v-app>
 		</AppContent>
 		<div>
 			<Modal v-if="transaction.visible"
@@ -139,9 +314,13 @@ import Modal from '@nextcloud/vue/dist/Components/Modal'
 import DatetimePicker from '@nextcloud/vue/dist/Components/DatetimePicker'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
+import moment from '@nextcloud/moment'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { VueAutosuggest } from 'vue-autosuggest'
+import LedgerBlock from './LedgerBlock.vue'
+import EnvelopeBudget from './EnvelopeBudget.vue'
+import { toLedger, fromLedger } from './ledgerparser2.js'
 export default {
 	name: 'App',
 	components: {
@@ -153,11 +332,22 @@ export default {
 		Modal,
 		DatetimePicker,
 		VueAutosuggest,
+		LedgerBlock,
+		EnvelopeBudget,
 	},
 	data() {
 		const state = OCP.InitialState.loadState('hledger', 'state')
 		this.initializeTransaction(state)
+		this.initializeEditor(state)
+		state.envelopeBudgetOpen = false
 		return state
+	},
+	async mounted() {
+		/* const availableLedgers = (await axios.get(this.apiUrl('availableledgers'))).data
+		this.editor.availableledgers = availableLedgers
+		for (let i = 0; i < this.editor.availableledgers.length; i++)
+		{
+		} */
 	},
 	computed: {
 		transactionInvalid() {
@@ -205,6 +395,9 @@ export default {
 			}
 			return (units.length > 1) || (amountsBlank !== 1) || (amountsEntered !== this.transaction.postings.length - 1)
 		},
+		currentFilterDirty() {
+			return JSON.stringify(this.editor.currentfilter) !== JSON.stringify(this.editor.filter)
+		}
 	},
 	methods: {
 		apiUrl(x) {
@@ -214,13 +407,21 @@ export default {
 			return text.slice(0, stop) + (stop < text.length ? clamp || '...' : '')
 		},
 		isSubAccount(x) {
-			return x.match(/^(assets|liabilities|equity|income|expenses):/g)
+			return x.match(/^(assets|liabilities|equity|income|expenses|budget):/ig)
 		},
 		shouldOutlineRow(x) {
-			return ['Account', 'Total:'].includes(x)
+			return ['Account', 'Total:', 'total'].includes(x)
 		},
 		shouldIndentCell(x) {
 			return ['Account', '<unbudgeted>'].includes(x) || this.isSubAccount(x)
+		},
+		isNegativeValue(x) {
+			const firstDigit = x.match(/\d/)
+			if (!firstDigit) {
+				return false
+			}
+			const nonNumbers = x.replace(/\d/g, '').length
+			return x.indexOf('-') >= 0 && nonNumbers < (x.length - nonNumbers) && x.indexOf('-') < x.indexOf(firstDigit)
 		},
 		startAddingTransactions() {
 			this.initializeTransaction(this)
@@ -298,6 +499,32 @@ export default {
 			state.transaction.postings.push(this.newPosting())
 			state.transaction.postings.push(this.newPosting())
 		},
+		initializeEditor(state) {
+			if (!('editor' in state)) {
+				state.editor = {
+				}
+			}
+			state.editor.editorOpen = false
+			state.editor.currencyStyles = {}
+			state.editor.ledgerloading = false
+			state.editor.ledgersaving = false
+			state.editor.accounts = []
+			state.editor.ledger = []
+			state.editor.ledgerFilterDirty = false
+			state.editor.shownontransaction = true
+			state.editor.showcodeinsteadofstatus = false
+			state.editor.alwaysshowcomments = false
+			state.editor.onlyenable = []
+			state.editor.filter = {}
+			state.editor.filter.showRecentN = 100
+			state.editor.filter.months = []
+			state.editor.filter.searchType = 'All Fields'
+			state.editor.filter.searchString = ''
+			state.editor.filter.caseSensitive = []
+			state.editor.filter.searchFirstAccount = ''
+			state.editor.currentfilter = JSON.parse(JSON.stringify(state.editor.filter))
+			state.editor.currentFilteredLedger = []
+		},
 		newPosting() {
 			return {
 				status: '',
@@ -337,6 +564,8 @@ export default {
 				}
 				this.report.data = (await axios.get(this.apiUrl(report), getOptions)).data
 				this.report.name = report
+				this.editor.editorOpen = false
+				this.envelopeBudgetOpen = false
 				this.report.options = options
 
 				/* For register-style reports, add "edit" button and scroll to bottom */
@@ -349,6 +578,51 @@ export default {
 				}
 			} catch (e) {
 				showError(t('hledger', 'Error getting ' + report + ': ' + e.message))
+			}
+		},
+		async openEditor() {
+			this.editor.ledger = []
+			this.editor.accounts = []
+			this.editor.ledgerloading = true
+			try {
+				const loadedTextLedger = (await axios.get(this.apiUrl('loadledgercontents'), { params: { fileName: this.editor.selectedledger } })).data
+				const nonNormalizedLoadedLedger = fromLedger(loadedTextLedger, false)
+				const backConvertedLedger = toLedger(nonNormalizedLoadedLedger).replace(/\s+/g, ' ')
+				const strippedLoadedTextLedger = loadedTextLedger.replace(/\s+/g, ' ')
+				if (backConvertedLedger !== strippedLoadedTextLedger) {
+					showError(t('hledger', 'Error: Ledger did not backconvert to the same ledger text. This means that there is something in the ledger file that this editor does not support'))
+				} else {
+					const loadedLedger = fromLedger(loadedTextLedger)
+					for (let i = 0; i < loadedLedger.blocks.length; i++) {
+						loadedLedger.blocks[i].id = i
+					}
+					this.editor.ledger = loadedLedger.blocks
+					this.editor.accounts = loadedLedger.accounts
+					this.editor.currencyStyles = loadedLedger.currencyStyles
+					this.editor.editorOpen = true
+					this.envelopeBudgetOpen = false
+					this.editor.currentFilteredLedger = this.filteredLedger()
+					this.editor.ledgerloading = false
+				}
+			} catch (e) {
+				showError(t('hledger', 'Error getting ledger contents: ' + e.message))
+				this.editor.ledgerloading = false
+			}
+		},
+		openEnvelopeBudget() {
+			this.envelopeBudgetOpen = true
+			this.editor.editorOpen = false
+		},
+		async saveLedger() {
+			this.editor.ledgersaving = true
+			try {
+				const currentLedger = { blocks: this.editor.ledger }
+				const serializedLedger = toLedger(currentLedger)
+				await axios.post(this.apiUrl('saveledgercontents'), { fileName: this.editor.selectedledger, contents: serializedLedger })
+				this.editor.ledgersaving = false
+			} catch (e) {
+				showError(t('hledger', 'Error saving ledger contents: ' + e.message))
+				this.editor.ledgersaving = false
 			}
 		},
 		scrollToBottom(selector) {
@@ -445,6 +719,331 @@ export default {
 				showError(t('hledger', 'Error saving settings'))
 			}
 		},
+		ledgerBlockChanged(val) {
+			for (let i = 0; i < this.editor.ledger.length; i++) {
+				if (this.editor.ledger[i].id === val.id) {
+					/* Do a one-level deep copy */
+					for (const prop in val) {
+						if (typeof val[prop] === 'object') {
+							this.editor.ledger[i][prop] = JSON.parse(JSON.stringify(val[prop]))
+						} else {
+							this.editor.ledger[i][prop] = val[prop]
+						}
+					}
+					this.editor.ledgerFilterDirty = true
+					return
+				}
+			}
+			alert('Could not find changed transaction in master list')
+		},
+		deleteTransaction(id) {
+			let found = false
+			for (let i = 0; i < this.editor.ledger.length; i++) {
+				if (this.editor.ledger[i].id === id) {
+					this.editor.ledger.splice(i, 1)
+					found = true
+					break
+				}
+			}
+
+			for (let i = 0; i < this.editor.currentFilteredLedger.length; i++) {
+				if (this.editor.currentFilteredLedger[i].id === id) {
+					this.editor.currentFilteredLedger.splice(i, 1)
+					break
+				}
+			}
+			if (!found) {
+				alert('Could not find transaction in master list')
+			}
+		},
+		applyFilter() {
+			this.editor.currentfilter = JSON.parse(JSON.stringify(this.editor.filter))
+			this.editor.currentFilteredLedger = this.filteredLedger()
+			this.editor.ledgerFilterDirty = false
+		},
+		revertFilter() {
+			this.editor.filter = JSON.parse(JSON.stringify(this.editor.currentfilter))
+		},
+		filteredLedger() {
+			return this.$options.filters.filterBlocks(this.editor.ledger, this.editor.currentfilter, this.editor.shownontransaction, this.searchMatches, moment)
+		},
+		applyChange(action, field, val) {
+			let setDirty = false
+			for (let i = 0; i < this.editor.currentFilteredLedger.length; i++) {
+				if (this.editor.currentFilteredLedger[i].type === 'transaction' && field === 'status') {
+					if (action === 'set') {
+						if (this.editor.currentFilteredLedger[i].status.indexOf(val) < 0) {
+							let newVal = (this.editor.currentFilteredLedger[i].status + ' ' + val).trim()
+							if (newVal === '* !') {
+								newVal = '! *'
+							}
+							this.editor.currentFilteredLedger[i].status = newVal
+							setDirty = true
+						}
+					} else if (action === 'unset') {
+						if (this.editor.currentFilteredLedger[i].status.indexOf(val) >= 0) {
+							this.editor.currentFilteredLedger[i].status = (this.editor.currentFilteredLedger[i].status.replace(val, '')).trim()
+							setDirty = true
+						}
+					}
+				}
+			}
+			if (setDirty) {
+				this.editor.ledgerFilterDirty = true
+			}
+		},
+		searchMatches(block, currentfilter) {
+			const caseSensitive = currentfilter.caseSensitive.includes(0)
+			/* Sometimes this ends up as 'null' if the clear button is used. Deal with it. */
+			let searchString = currentfilter.searchString
+			if (!searchString) {
+				searchString = ''
+			}
+			if (!caseSensitive) {
+				searchString = searchString.toLocaleLowerCase()
+			}
+			/* Omit checking for 'All Fields' since that will be handled by the 'Any Account' block below */
+			if (currentfilter.searchFirstAccount || currentfilter.searchType === 'First Account') {
+				if ((block.type === 'transaction' || block.type === 'other') && block.postingIndexes.length > 0) {
+					if (currentfilter.searchFirstAccount && block.lines[block.postingIndexes[0]].account !== currentfilter.searchFirstAccount) {
+						// searchFirstAccount is considered an 'AND' operation. If it fails, return false.
+						return false
+					}
+					if (currentfilter.searchType === 'First Account') {
+						if (caseSensitive) {
+							if (block.lines[block.postingIndexes[0]].account.indexOf(searchString) >= 0) {
+								return true
+							}
+						} else {
+							if (block.lines[block.postingIndexes[0]].account.toLocaleLowerCase().indexOf(searchString) >= 0) {
+								return true
+							}
+						}
+					}
+				} else if (currentfilter.searchFirstAccount) {
+					/* If we are using searchFirstAccount and this is not a transaction or the transaction has no postings, return false */
+					return false
+				}
+			}
+			// If 'All Fields' is being used but no search string is provided, just match everything
+			if (currentfilter.searchType === 'All Fields' && !searchString) {
+				return true
+			}
+			/* Omit checking for 'All Fields' since that will be handled by the 'Any Account' block below */
+			if (currentfilter.searchType === 'Second Account') {
+				if ((block.type === 'transaction' || block.type === 'other') && block.postingIndexes.length > 0) {
+					if (caseSensitive && block.lines[block.postingIndexes[1]].account.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.lines[block.postingIndexes[1]].account.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Any Account' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction' || block.type === 'other') {
+					for (let i = 0; i < block.postingIndexes.length; i++) {
+						if (caseSensitive && block.lines[block.postingIndexes[i]].account.indexOf(searchString) >= 0) {
+							return true
+						} else if (!caseSensitive && block.lines[block.postingIndexes[i]].account.toLocaleLowerCase().indexOf(searchString) >= 0) {
+							return true
+						}
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Date' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction') {
+					if (caseSensitive && block.date.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.date.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Status' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction') {
+					if (block.status.indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Code' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction') {
+					if (caseSensitive && block.code.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.code.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Description' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction') {
+					if (caseSensitive && block.description.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.description.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Comment' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction') {
+					if (caseSensitive && block.comment.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.comment.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+				if (block.type === 'transaction' || block.type === 'other') {
+					for (let i = 0; i < block.lines.length; i++) {
+						let testString = ''
+						if (block.lines[i].type === 'posting') {
+							testString = block.lines[i].comment
+						} else if (block.lines[i].type === 'comment') {
+							testString = block.lines[i].text
+						}
+						if (caseSensitive && testString.indexOf(searchString) >= 0) {
+							return true
+						} else if (!caseSensitive && testString.toLocaleLowerCase().indexOf(searchString) >= 0) {
+							return true
+						}
+					}
+				} else if (block.type === 'comment') {
+					if (caseSensitive && block.text.indexOf(searchString) >= 0) {
+						return true
+					} else if (!caseSensitive && block.text.toLocaleLowerCase().indexOf(searchString) >= 0) {
+						return true
+					}
+				}
+			}
+			if (currentfilter.searchType === 'Amount' || currentfilter.searchType === 'All Fields') {
+				if (block.type === 'transaction' || block.type === 'other') {
+					for (let i = 0; i < block.lines.length; i++) {
+						if (block.lines[i].type === 'posting') {
+							if (caseSensitive && block.lines[i].amount.indexOf(searchString) >= 0) {
+								return true
+							} else if (!caseSensitive && block.lines[i].amount.toLocaleLowerCase().indexOf(searchString) >= 0) {
+								return true
+							}
+						}
+					}
+				}
+			}
+			return false
+		},
+		scrollToBottom2() {
+			window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight)
+		},
+		addTransactionBlock() {
+			let lastId = -1
+			if (this.editor.ledger.length > 0) {
+				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
+			}
+			this.editor.ledger.push({ id: lastId + 1, type: 'transaction', lines: [], postingIndexes: [], date: moment().format('YYYY-MM-DD'), status: '', code: '', description: '', comment: '' })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
+			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
+		},
+		addCommentBlock() {
+			let lastId = -1
+			if (this.editor.ledger.length > 0) {
+				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
+			}
+			this.editor.ledger.push({ id: lastId + 1, type: 'comment', text: '', commentType: ';' })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
+			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
+		},
+		addOtherBlock() {
+			let lastId = -1
+			if (this.editor.ledger.length > 0) {
+				lastId = this.editor.ledger[this.editor.ledger.length - 1].id
+			}
+			this.editor.ledger.push({ id: lastId + 1, type: 'other', text: '', lines: [], postingIndexes: [] })
+			this.editor.currentFilteredLedger.push(this.editor.ledger[this.editor.ledger.length - 1])
+			this.editor.ledgerFilterDirty = true
+			setTimeout(this.scrollToBottom2, 10) // Scroll after slight delay so that the scrolling happens after the GUI has added the new elements
+		},
+	},
+	filters: {
+		filterBlocks(blockList, currentfilter, shownontransaction, searchMatches, moment) {
+			const filteredList = []
+			const momentMonths = []
+			for (let j = 0; j < currentfilter.months.length; j++) {
+				momentMonths.push(moment(currentfilter.months[j], 'YYYY-MM'))
+			}
+			for (let i = 0; i < blockList.length; i++) {
+				if (blockList[i].type === 'transaction') {
+					if (momentMonths.length <= 0) {
+						if (searchMatches(blockList[i], currentfilter)) {
+							filteredList.push(blockList[i])
+						}
+					} else {
+						const thisDate = moment(blockList[i].date, 'YYYY-MM-DD')
+						for (let j = 0; j < momentMonths.length; j++) {
+							if (thisDate.year() === momentMonths[j].year() && thisDate.month() === momentMonths[j].month()) {
+								if (searchMatches(blockList[i], currentfilter)) {
+									filteredList.push(blockList[i])
+								}
+								break
+							}
+						}
+					}
+				} else if (shownontransaction) {
+					if (searchMatches(blockList[i], currentfilter)) {
+						filteredList.push(blockList[i])
+					}
+				}
+			}
+			if (filteredList.length > currentfilter.showRecentN) {
+				filteredList.splice(0, filteredList.length - currentfilter.showRecentN)
+			}
+			return filteredList
+		}
 	},
 }
 </script>
+<style>
+	/* Most of these rules fix nextcloud interfering with vuetify */
+	.ignorenextcloud input, .ignorenextcloud textarea, .ignorenextcloud input:disabled, .ignorenextcloud textarea:disabled {
+		border: inherit;
+		background-color: inherit;
+		font-size: inherit;
+		margin-bottom: inherit;
+		color: inherit;
+		opacity: inherit;
+	}
+
+	.ignorenextcloud div.v-input:not(.v-text-field--filled) input {
+		margin-top: inherit;
+	}
+
+	.ignorenextcloud input:active, .ignorenextcloud textarea:active, .ignorenextcloud textarea:hover, .ignorenextcloud textarea:focus {
+		background-color: inherit !important;
+	}
+
+	.ignorenextcloud select, .ignorenextcloud input, .ignorenextcloud textarea {
+		/* width: inherit; */
+		min-height: inherit;
+	}
+
+	.ignorenextcloud button {
+		padding: inherit;
+		min-height: inherit;
+	}
+
+	.ignorenextcloud label {
+		cursor: inherit;
+	}
+
+	.ignorenextcloud tbody tr:hover, .ignorenextcloud tbody tr:focus, .ignorenextcloud tbody tr:active {
+		background-color: inherit;
+	}
+
+	/* These two rules fix vuetify interfering with nextcloud */
+	*, :after, :before {
+		box-sizing: revert;
+	}
+
+	.ignorenextcloud *, .ignorenextcloud :after, .ignorenextcloud :before {
+		box-sizing: inherit;
+	}
+</style>

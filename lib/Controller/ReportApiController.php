@@ -55,6 +55,34 @@ class ReportApiController extends ApiController
     /**
      * @NoAdminRequired
      */
+    public function balance()
+    {
+        $content = $this->request->getParams();
+        $query = [];
+        $options = [];
+        if (array_key_exists('query', $content))
+        {
+            $query = $content['query'];
+        }
+        if (array_key_exists('options', $content))
+        {
+            $options = $content['options'];
+        }
+        $response = $this->hledger->balance($query, $options);
+        /* balance will return null if there are any security issues */
+        if ($response !== null)
+        {
+            return new DataResponse($response);
+        }
+        else
+        {
+            throw new ForbiddenException("Not Allowed!");
+        }
+    }
+
+    /**
+     * @NoAdminRequired
+     */
     public function accountRegister()
     {
         $account = $this->request->getParam('account');
